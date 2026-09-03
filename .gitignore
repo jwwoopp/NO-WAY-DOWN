@@ -1,0 +1,12 @@
+.vs/
+Bin/
+Intermediate/
+x64/
+Debug/
+Release/
+*.user
+*.suo
+*.pdb
+*.ilk
+*.obj
+*.tlog
