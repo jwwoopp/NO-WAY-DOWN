@@ -21,21 +21,23 @@ namespace Craft
 			virtual void Tick(float deltaTime);
 			virtual void Draw();
 
-			bool HasInitialized() const { return HasInitialized; }
+			bool HasInitialized() const { return hasInitialized; }
 
 		protected:
 			void ProcessAddAndDestroyActors();
 
-			bool hasInitilized = false;
+			bool hasInitialized = false;
 
 			std::vector<std::shared_ptr<Actor>> actorList;
 			std::vector<std::shared_ptr<Actor>> addRequestedActorList;
 
 		public:
-			template<typename T, typename... args, typename = std::enable_if_t<std::is_base_of<Actor, T>::value>>
-			std::shared_ptr<T> SpawnActor(Args&&... args)
+			template<typename T, typename... Args,
+				typename = std::enable_if_t<std::is_base_of<Actor, T>::value>>
+				std::shared_ptr<T> SpawnActor(Args&&... args)
 			{
-				std::shared_ptr<T> nextafter = std::maked_shared<T>(std::forward<Args>(args)...);
+				std::shared_ptr<T> newActor =
+					std::make_shared<T>(std::forward<Args>(args)...);
 
 				addRequestedActorList.emplace_back(newActor);
 				newActor->SetOwner(weak_from_this());

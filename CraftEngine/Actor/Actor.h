@@ -16,7 +16,22 @@ namespace Craft
 		virtual void Tick(float deltaTime);
 		virtual void Draw();
 
-		void Destory();
+		void Destroy();
+
+		inline bool HasBeganPlay() const
+		{
+			return hasBeganPlay;
+		}
+
+		inline bool IsActive() const
+		{
+			return isActive && !hasExpired;
+		}
+
+		inline bool HasExpired() const
+		{
+			return hasExpired;
+		}
 
 		std::shared_ptr<Level> GetOwner() const { return owner.lock(); }
 		void SetOwner(std::weak_ptr<Level> newOwner) { owner = newOwner; }

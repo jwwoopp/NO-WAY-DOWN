@@ -6,7 +6,7 @@ namespace Craft
 	{
 	}
 
-	Actor::Actor()
+	Actor::~Actor()
 	{
 	}
 
@@ -23,7 +23,7 @@ namespace Craft
 	{
 	}
 	
-	void Actor::Destory()
+	void Actor::Destroy()
 	{
 		hasExpired = true;
 	}
