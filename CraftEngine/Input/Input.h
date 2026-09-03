@@ -1,8 +1,10 @@
 #pragma once
 
+#include <Core/Core.h>
+
 namespace Craft
 {
-	class Input
+	class CRAFT_API Input
 	{
 		friend class Engine;
 

@@ -1,5 +1,6 @@
 #pragma once
 
+#include <Core/Core.h>
 #include <memory>
 
 namespace Craft
@@ -7,7 +8,7 @@ namespace Craft
 	class Level;
 	class Input;
 
-	class Engine
+	class CRAFT_API Engine
 	{
 		struct Setting
 		{

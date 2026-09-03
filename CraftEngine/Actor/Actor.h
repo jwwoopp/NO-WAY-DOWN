@@ -1,4 +1,5 @@
 #pragma once
+#include <Core/Core.h>
 #include <memory>
 
 namespace Craft
@@ -6,7 +7,7 @@ namespace Craft
 
 	class Level;
 	
-	class Actor
+	class CRAFT_API Actor
 	{
 	public:
 		Actor();

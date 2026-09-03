@@ -1,5 +1,6 @@
 #pragma once
 
+#include <Core/Core.h>
 #include <Actor/Actor.h>
 #include <memory>
 #include <vector>
@@ -8,7 +9,7 @@ namespace Craft
 {
 	class Engine;
 
-	class Level : public std::enable_shared_from_this<Level>
+	class CRAFT_API Level : public std::enable_shared_from_this<Level>
 	{
 			friend class Engine;
 
