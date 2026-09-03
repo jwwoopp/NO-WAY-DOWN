@@ -91,6 +91,7 @@
     <ClCompile Include="Actor\Actor.cpp" />
     <ClCompile Include="Actor\TestActor.cpp" />
     <ClCompile Include="Engine\Engine.cpp" />
+    <ClCompile Include="Input\Input.cpp" />
     <ClCompile Include="Level\Level.cpp" />
     <ClCompile Include="Level\TestLevel.cpp" />
     <ClCompile Include="Main.cpp" />
@@ -100,6 +101,7 @@
     <ClInclude Include="Actor\TestActor.h" />
     <ClInclude Include="Core\Core.h" />
     <ClInclude Include="Engine\Engine.h" />
+    <ClInclude Include="Input\Input.h" />
     <ClInclude Include="Level\Level.h" />
     <ClInclude Include="Level\TestLevel.h" />
   </ItemGroup>

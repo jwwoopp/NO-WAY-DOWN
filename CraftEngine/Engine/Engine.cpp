@@ -1,12 +1,15 @@
 ﻿#include "Engine.h"
+#include <Input/Input.h>
+#include <Level/Level.h>
+#include <cassert>
 #include <iostream>
 #include <Windows.h>
-#include <Level/Level.h>
 
 namespace Craft
 {
 	Engine::Engine()
 	{
+		input = std::make_unique<Input>();
 	}
 	Engine::~Engine()
 	{
@@ -29,6 +32,8 @@ namespace Craft
 			// ESC 처리.
 			// 시간 계산.
 			// 프레임 처리.
+
+			ProcessInput();
 
 			if ((GetAsyncKeyState(VK_ESCAPE) & 0x8000) != 0)
 			{
@@ -61,6 +66,8 @@ namespace Craft
 					mainLevel->ProcessAddAndDestroyActors();
 				}
 
+				SavePreviousInputStates();
+
 				previous = current;
 			}
 		}
@@ -69,6 +76,18 @@ namespace Craft
 	void Engine::Quit()
 	{
 		isQuit = true;
+	}
+
+	void Engine::ProcessInput()
+	{
+		assert(input && "input should not be null here");
+		input->ProcessInput();
+	}
+
+	void Engine::SavePreviousInputStates()
+	{
+		assert(input && "input should not be null here");
+		input->SavePreviousStates();
 	}
 
 	void Engine::OnInitialized()
@@ -87,6 +106,7 @@ namespace Craft
 			return;
 		}
 		mainLevel->BeginPlay();
+
 	}
 
 	void Engine::Tick(float deltaTime)

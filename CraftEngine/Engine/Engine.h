@@ -5,6 +5,7 @@
 namespace Craft
 {
 	class Level;
+	class Input;
 
 	class Engine
 	{
@@ -28,6 +29,9 @@ namespace Craft
 
 	protected:
 
+		void ProcessInput();
+		void SavePreviousInputStates();
+
 		void OnInitialized();
 		void BeginPlay();
 		void Tick(float deltaTime);
@@ -38,5 +42,6 @@ namespace Craft
 
 		std::shared_ptr<Level> mainLevel;
 		std::shared_ptr<Level> nextLevel;
+		std::unique_ptr<Input> input;
 	};
 }
