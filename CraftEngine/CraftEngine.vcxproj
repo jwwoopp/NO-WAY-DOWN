@@ -71,10 +71,12 @@
       <EnableSegmentHeap>true</EnableSegmentHeap>
     </Manifest>
     <PreBuildEvent>
-      <Command>xcopy *.h ..\Includes\ /e /y /i</Command>
+      <Command>xcopy *.h ..\Includes\ /e /y /i
+xcopy ..\Config\* $(OutDir)..\Config\ /e /y /i</Command>
     </PreBuildEvent>
     <PreLinkEvent>
-      <Command>xcopy  *.h ..\Includes\ /e /y /i</Command>
+      <Command>
+      </Command>
     </PreLinkEvent>
     <PostBuildEvent>
       <Command>xcopy $(OutDir)\*.lib ..\Lib\ /e /y /i</Command>
@@ -98,6 +100,10 @@
     <Manifest>
       <EnableSegmentHeap>true</EnableSegmentHeap>
     </Manifest>
+    <PreBuildEvent>
+      <Command>xcopy *.h ..\Includes\ /e /y /i
+xcopy ..\Config\* $(OutDir)..\Config\ /e /y /i</Command>
+    </PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="Actor\Actor.cpp" />
@@ -106,6 +112,7 @@
     <ClCompile Include="Level\Level.cpp" />
     <ClCompile Include="Math\Vector2.cpp" />
     <ClCompile Include="Renderer\Renderer.cpp" />
+    <ClCompile Include="Renderer\ScreenBuffer.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Actor\Actor.h" />
@@ -116,6 +123,7 @@
     <ClInclude Include="Math\Color.h" />
     <ClInclude Include="Math\Vector2.h" />
     <ClInclude Include="Renderer\Renderer.h" />
+    <ClInclude Include="Renderer\ScreenBuffer.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

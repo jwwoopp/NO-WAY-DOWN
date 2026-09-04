@@ -1,35 +1,55 @@
 # NO WAY DOWN 개발 인수인계
 
-최종 갱신: 2026-09-03
+최종 갱신: 2026-09-04
 
-## 프로젝트 정보
+## 기본 정보
 
-- 작업 위치: `C:\Workspace\Monapark\Part2Game`
+- 작업 폴더: `C:\Workspace\Monapark\Part2Game`
 - 저장소: `https://github.com/jwwoopp/no-way-down.git`
-- 현재 브랜치: `01.Engine` (원격과 동기화됨)
+- 현재 브랜치: `01.Engine`
 - 개발 환경: Windows, Visual Studio 18, C++20, x64 Debug
 - 기준 강사 저장소: `https://github.com/hamtol2/Wanted5_ConsoleGameProject`
-- 구현 순서는 강사 저장소 브랜치를 따른다. 현재 `4.EngineDLL-Seperation`까지 완료.
+- 강사 브랜치 순서대로 진행 중. **`7.DoubleBuffering`까지 완료.**
 
-## 게임 MVP
+## 사용자와 진행하는 방식
 
-게임 이름은 **NO WAY DOWN**이다.
-플레이어가 좀비를 피해 단층 2D 격자 맵을 통과하고 계속 위층으로 올라가는 수직 생존 로그라이트다.
-첫 완성 범위는 `4개 층 + 옥상`, 플레이 시간 5~10분이다.
-각 층은 별도의 2D Level이며, 위쪽 출구에 도착하면 다음 Level로 전환한다.
-플레이어의 체력과 아이템은 유지하고, 아래층의 소음과 체류 시간이 다음 층 난이도에 영향을 준다.
-좀비 경로 탐색은 층 내부 A*를 사용한다. 쿼드트리와 3D 높낮이 구현은 MVP에서 제외한다.
+- 사용자가 코드를 직접 입력한다. 대신 파일을 완성해주지 않는다.
+- 한 번에 한 줄 또는 함수 하나 이하로 나누어 안내한다.
+- 수정이나 추가 위치는 반드시 **현재 파일명과 줄 번호**로 말한다.
+- 줄 번호는 매번 실제 파일을 다시 읽고 확인한다.
+- 코드는 반드시 코드 블록으로 제공하고, 코드 안에 `...` 생략 표시를 쓰지 않는다. 그대로 입력해서 빌드가 깨진 적이 있다.
+- 설명은 **아주 쉽게** 한다. 비유를 쓰고 문장을 짧게 끊는다. 사용자가 "더 쉽게"라고 하면 용어를 더 덜어낸다.
+- 이미 이해한 개념은 반복 설명하지 않는다.
+- 질문은 설계상 중요한 것만 한다.
+- 사용자가 오류를 보내면 **가장 첫 오류부터** 원인 하나씩 해결한다.
+- 강사 코드를 확인하지 않고 추측해서 안내하지 않는다. 저장소를 직접 열어본다.
+- 강사 코드에 없는 것을 제안할 때는 **그렇다고 미리 밝힌다.**
+- 사용자는 한글 주석을 많이 쓴다. C4819가 나오면 해당 파일을 **UTF-8 서명 포함**으로 저장한다.
+- 폴더 이름은 강사의 `Render`와 다르게 사용자가 `Renderer`로 정했다. include 경로는 `<Renderer/Renderer.h>`로 통일한다.
+- 커밋 메시지는 한국어로 작성한다.
+- 사용자 터미널은 **cmd**다. `rm`, `ls`, `cat`이 없다. `rmdir /s /q`, `del`, `dir`, `type`을 쓴다.
+
+## 게임 MVP 방향
+
+- 게임명: **NO WAY DOWN**
+- 탑다운 문자/블록 기반 수직 좀비 생존 로그라이트
+- 한 층은 독립적인 2D 격자 `Level`
+- 한 층 탐색 → 위쪽 출구 도달 → 다음 `Level` 진입이 최소 게임 루프
+- 첫 목표는 `4개 층 + 옥상`, 5~10분 데모
+- 층 내부 좀비 길찾기는 A* 사용
+- 층 전환은 A*가 아니라 Level 교체로 처리
+- 쿼드트리와 3D 높낮이는 MVP에서 제외
+- RunState는 층 전환이 작동한 뒤 체력 하나부터 추가
+- 16개 콘솔 색상 슬롯의 실제 RGB를 0~255로 바꾸는 커스텀 팔레트를 Renderer에 추가할 예정
 
 ## 개발 단계
 
-1. `01.Engine`: 엔진 루프, Level/Actor, Input, Renderer, 더블 버퍼링  ← 진행 중
+1. `01.Engine`: 엔진 루프, Level/Actor, Input, Renderer, 더블 버퍼링  ← 거의 완료
 2. `02.Floor`: 타일 맵, 플레이어 이동, 벽/문, 층 전환
 3. `03.Zombie`: A*, 시야, 소음, 좀비 상태
 4. `04.Combat`: 전투, 아이템, 행동 기반 난이도, 사망/탈출
 
-## 2026-09-03 작업 내역
-
-커밋 5개. 강사 브랜치 2~4에 해당하는 범위를 완료했다.
+## 진행 내역
 
 | 커밋 | 내용 | 강사 브랜치 |
 | --- | --- | --- |
@@ -38,146 +58,155 @@
 | `a8be092` | 입력 시스템 추가 | 3.Input |
 | `c79cd78` | 엔진을 DLL로 분리하고 CRAFT_API 적용 | 4.EngineDLL-Seperation |
 | `9d7a5d3` | 엔진 DLL 분리 및 게임 프로젝트 NoWayDown 구성 | 4.EngineDLL-Seperation |
+| `15c0bad` | 프로젝트 빌드 경로 정리 | — |
+| `c72a912` | 콘솔 렌더러와 액터 이동 구현 | 5.Renderer |
+| (미커밋) | 엔진 설정 파일 로드와 이중 버퍼링 구현 | 6.EngineSetting, 7.DoubleBuffering |
 
-## 현재 프로젝트 구조
+## 프로젝트 구조
 
 솔루션 `Part2Game.slnx`에 프로젝트 2개.
 
 ```
-CraftEngine (DynamicLibrary → CraftEngine.dll)     엔진
-  Core/Core.h            CRAFT_API 매크로 (dllexport / dllimport 전환)
-  Engine/Engine.h .cpp   게임 루프, Level·Input 소유
-  Level/Level.h  .cpp    액터 목록과 생명주기
-  Actor/Actor.h  .cpp    게임 객체 기반 클래스
-  Input/Input.h  .cpp    키보드 상태 관리
+CraftEngine (DynamicLibrary → CraftEngine.dll)
+  Core/Core.h                    CRAFT_API 매크로 (dllexport / dllimport 전환)
+  Engine/Engine.h .cpp           게임 루프, 설정 로드, Input·Renderer 소유
+  Level/Level.h  .cpp            액터 목록과 생명주기
+  Actor/Actor.h  .cpp            게임 객체 기반 클래스
+  Input/Input.h  .cpp            키보드 상태 관리
+  Math/Vector2.h .cpp            좌표, COORD 변환, 연산자 오버로딩
+  Math/Color.h                   콘솔 색상 enum
+  Renderer/Renderer.h .cpp       렌더 큐, Frame 배열, 이중 버퍼 관리
+  Renderer/ScreenBuffer.h .cpp   콘솔 화면 한 장 (Windows 핸들)
 
-NoWayDown (Application → NoWayDown.exe)            게임
+NoWayDown (Application → NoWayDown.exe)
   Actor/TestActor.h .cpp
   Level/TestLevel.h .cpp
   Main.cpp
+
+Config/Setting.txt               framerate / width / height
 ```
 
-`WantedPart2` 프로젝트는 솔루션과 git에서 제거했다.
+`Includes/`, `Lib/`, `Bin/`, `Intermediate/`는 `.gitignore`에 있다.
 
 ## 현재 코드 상태
 
-전부 빌드·실행 확인됨. `Bin\x64\Debug\`에 `CraftEngine.dll`과 `NoWayDown.exe`가 나온다.
+전부 빌드·실행 확인됨. 초록색 `P`가 방향키로 움직이고 ESC로 종료된다. 깜빡임 없음.
 
 **Engine**
-- QPC 기반 120 FPS 고정 프레임 루프.
+- QPC 기반 고정 프레임 루프. 목표 프레임은 `Config/Setting.txt`에서 읽는다.
 - 프레임 순서: `ProcessInput()` → ESC 검사 → `OnInitialized` → `BeginPlay` → `Tick` → `Draw` → 레벨 교체 → `ProcessAddAndDestroyActors` → `SavePreviousInputStates()`.
-- `mainLevel`(현재 층)과 `nextLevel`(예약된 층)을 `shared_ptr`로 소유. 프레임이 끝난 뒤에만 교체한다.
-- `AddNewLevel<T>()` 템플릿으로 다음 레벨 예약.
-- `input`을 `unique_ptr`로 소유.
+- 생성자 순서가 중요하다. `LoadEngineSetting()` → `Input` 생성 → `Renderer` 생성(화면 크기 전달).
+- 엔진은 ESC를 모른다. 종료는 `TestActor::Tick()`에서 `Input::Get().GetKeyDown(VK_ESCAPE)` → `QuitGame()` → `Engine::Get().Quit()`. 엔진은 수단만 주고 판단은 게임이 한다.
+- `Engine::Get()` 싱글톤 있음. `GetWidth()` / `GetHeight()` 있으나 아직 아무도 안 쓴다 (강사도 브랜치 19에서야 사용).
+- `LoadEngineSetting()`은 `../Config/Setting.txt`를 `fopen_s`로 열고, 2048바이트 버퍼에 `fread`, `strtok_s`로 줄 단위 분리, `sscanf_s`로 값 파싱.
 
-**Level**
-- `OnInitialized` / `BeginPlay` / `Tick` / `Draw` / `ProcessAddAndDestroyActors` 구현 완료.
-- `SpawnActor<T>()`는 추가 예약 목록에 넣고, 프레임 끝에 `actorList`로 옮긴다.
-- 액터 제거도 순회 중이 아니라 프레임 끝에 처리한다.
+**Renderer**
+- `Submit()`으로 렌더 명령을 큐에 쌓고, `Draw()`에서 `Clear` → `DrawRenderQueue` → `Present`.
+- `Frame`은 화면 칸 수만큼의 `CHAR_INFO[]`와 `int[]`(sortingOrder) 배열. 1차원 배열을 `(y * width) + x`로 2차원처럼 쓴다.
+- `DrawRenderQueue`는 화면 밖 판정 → 좌우 클리핑 → sortingOrder 비교 후 배열에 기록. 루프가 끝난 뒤 `WriteConsoleOutputA`로 **한 번만** 출력한다.
+- `ScreenBuffer` 2개를 만들어 `SetConsoleActiveScreenBuffer`로 번갈아 보여준다. 인덱스는 `1 - currentBufferIndex`로 뒤집는다.
+- `system("cls")`는 제거됐다.
 
 **Actor**
-- `HasBeganPlay()` / `IsActive()` / `HasExpired()` 구현. `IsActive()`는 `isActive && !hasExpired`.
-- `Destroy()`는 즉시 삭제가 아니라 `hasExpired` 플래그만 켠다.
-- owner는 `weak_ptr<Level>`, `GetOwner()`에서 lock 해서 반환.
+- `image` / `position` / `color` / `width` / `sortingOrder` 보유.
+- `Draw()`에서 `Renderer::Get().Submit(...)`.
+- `Destroy()`는 즉시 삭제가 아니라 `hasExpired` 플래그만 켠다. 실제 제거는 프레임 끝.
+- owner는 `weak_ptr<Level>`.
 
 **Input**
-- 키마다 `isKeyDown`(지금) / `wasKeyDown`(이전 프레임) 두 값을 저장한다.
-- `GetKeyDown` / `GetKeyUp` / `GetKey` 세 가지 판정 제공.
-- `ProcessInput()`과 `SavePreviousStates()`는 `private`이고 `friend class Engine`으로 Engine만 호출한다.
-- 전역 접근은 `Input::Get()`.
+- 키마다 `isKeyDown`(지금) / `wasKeyDown`(이전 프레임) 두 값 저장.
+- `GetKeyDown` / `GetKeyUp` / `GetKey`.
+- 갱신 함수는 `private` + `friend class Engine`.
 
-**TestActor / TestLevel**
-- `TestLevel::OnInitialized()`에서 `SpawnActor<TestActor>()`.
-- `TestActor::Tick()`은 A 키 입력 3종을 콘솔에 출력한다. Renderer 단계에서 방향키 이동으로 교체 예정.
+**Level**
+- 액터 추가와 제거 모두 프레임 끝에 `ProcessAddAndDestroyActors()`에서 처리한다.
 
 ## 강사 코드와 다른 점
 
-의도적으로 뺐거나 아직 안 넣은 것들. 다음 단계에서 필요해지면 그때 넣는다.
-
-- `Engine::Get()` 싱글톤과 `static Engine* instance`가 없다. 따라서 `Actor::QuitGame()`도 없다.
-  ESC 종료는 `Engine::Run()` 안에서 `input->GetKeyDown(VK_ESCAPE)`로 직접 처리한다.
-  강사 코드는 `TestActor::Tick()`에서 `QuitGame()`을 부른다.
+- 폴더 이름이 `Render`가 아니라 **`Renderer`**다.
+- 게임 프로젝트 이름이 `Game`이 아니라 **`NoWayDown`**이다.
 - `Level::FindActor<T>()` 템플릿이 없다.
 - `Engine::Shutdown()`이 없다.
-- 게임 프로젝트 이름이 `Game`이 아니라 `NoWayDown`이다.
+- `Actor.h` 인자 이름에 오타가 있다 (`Color colr`). 선언부라 빌드는 되지만 헷갈린다.
+- `Actor::Draw()`에 강사의 `if (!IsActive()) return;` 검사가 없다. `Level::Draw()`가 이미 걸러서 동작에는 문제없다.
 
-## 프로젝트 설정 (오늘 시간을 많이 쓴 부분)
+## 프로젝트 설정
 
 **CraftEngine**
 - 구성 형식: `동적 라이브러리(.dll)`
-- 전처리기 정의에 `ENGINE_BUILD_DLL` (이 이름표로 `Core.h`가 export/import를 가른다)
+- 전처리기 정의에 `ENGINE_BUILD_DLL` (Debug만 들어가 있음 — Release 미설정)
 - 출력 디렉터리: `$(SolutionDir)Bin\$(Platform)\$(Configuration)\`
 - 중간 디렉터리: `$(SolutionDir)Intermediate\$(Platform)\$(Configuration)\$(ProjectName)\`
 - 빌드 전 이벤트: `xcopy *.h ..\Includes\ /e /y /i`
 - 빌드 후 이벤트: `xcopy $(OutDir)\*.lib ..\Lib\ /e /y /i`
 
 **NoWayDown**
-- 구성 형식: `애플리케이션(.exe)`
+- 구성 형식: `애플리케이션(.exe)`, 시작 프로젝트
 - 추가 포함 디렉터리: `..\Includes;$(ProjectDir);%(AdditionalIncludeDirectories)`
 - 링커 → 출력 파일: `$(OutDir)$(TargetName)$(TargetExt)`
 - 링커 → 추가 라이브러리 디렉터리: `..\Lib;%(AdditionalLibraryDirectories)`
 - 링커 → 추가 종속성: `CraftEngine.lib;$(CoreLibraryDependencies);%(AdditionalDependencies)`
-- 시작 프로젝트로 설정되어 있다.
 
-`Includes/`, `Lib/`, `Bin/`, `Intermediate/`는 `.gitignore`에 있다.
+### 정리가 필요한 설정
 
-### 아직 정리 안 된 설정
+Debug x64로는 돌아가지만 아래는 어긋나 있다.
 
-Debug x64로는 문제없이 돌아가지만 아래는 남아 있다.
+- **`Config` 복사 이벤트가 Release 구성에만 있다.** Debug에는 없어서 `Bin\x64\Debug\` 옆에 `Config`가 안 생긴다. 그리고 그 과정에서 Release의 헤더 복사 줄이 사라졌다.
+  두 구성 모두 빌드 전 이벤트가 아래 두 줄이어야 한다.
+  ```
+  xcopy *.h ..\Includes\ /e /y /i
+  xcopy ..\Config\* $(OutDir)..\Config\ /e /y /i
+  ```
+- `CraftEngine.vcxproj` Debug 블록에 헤더 복사 명령이 한 번 더 들어가 있다 (빌드 전 이벤트가 아닌 다른 이벤트). 중복이라 지워도 된다.
+- `CraftEngine.vcxproj` Release의 중간 디렉터리가 `Bin\...`을 가리킨다. `Intermediate\...`여야 한다.
+- `CraftEngine.vcxproj` Release 전처리기 정의에 `_DEBUG`가 들어가 있고 `ENGINE_BUILD_DLL`이 없다. `NDEBUG;ENGINE_BUILD_DLL`이어야 한다.
+- `CraftEngine.vcxproj` Debug 추가 포함 디렉터리에 `..\Includes\SoundSystem` 잔재가 있다. 이 프로젝트에 사운드 시스템은 없다.
+- `NoWayDown.vcxproj` Debug 중간 디렉터리에만 `$(ProjectName)`이 빠져 있다.
 
-- `CraftEngine.vcxproj` 52줄: Release의 중간 디렉터리가 `Bin\...`을 가리킨다. `Intermediate\...`로 고쳐야 한다.
-- `CraftEngine.vcxproj` 89줄: Release 전처리기 정의에 `_DEBUG`가 들어가 있다. `NDEBUG`여야 한다.
-- `CraftEngine.vcxproj` 61줄: 추가 포함 디렉터리에 `..\Includes\SoundSystem` 잔재가 남아 있다. 이 프로젝트에 사운드 시스템은 없다.
-- `NoWayDown.vcxproj` 48줄: Debug 중간 디렉터리에만 `$(ProjectName)`이 빠져 있다. Release(52줄)와 다르다.
+**실행 경로 주의**: `LoadEngineSetting()`이 `../Config/Setting.txt`를 연다. VS에서 F5로 실행하면 작업 폴더가 `NoWayDown\`이라 맞아떨어진다. `Bin\x64\Debug\NoWayDown.exe`를 직접 실행하려면 위 `Config` 복사 이벤트가 Debug에도 있어야 한다.
 
-## 다음 할 일 — 강사 브랜치 `5.Renderer`
+## 다음 할 일
 
-여기서 처음으로 화면에 그림이 나온다. 새 파일 5개, 기존 파일 3개 수정.
+**1. 커밋** (아직 안 됨)
 
-**새로 만들 것**
+```
+git add Config CraftEngine NoWayDown
+git commit -m "기능: 엔진 설정 파일 로드와 이중 버퍼링 구현"
+git push origin 01.Engine
+```
 
-| 파일 | 내용 |
-| --- | --- |
-| `CraftEngine/Math/Vector2.h .cpp` | 좌표 클래스. 사칙·비교·대입 연산자 오버로딩, `operator COORD()`로 콘솔 좌표 자동 변환, `static Zero/One/Right/Up`. 콘솔은 y가 아래로 증가하므로 `Up`은 `(0, -1)`. |
-| `CraftEngine/Math/Color.h` | `enum class Color : WORD`. Windows `FOREGROUND_*` 상수 조합. |
-| `CraftEngine/Render/Renderer.h .cpp` | 그리기 전담. `Submit()`으로 렌더 명령을 큐에 쌓고, `Draw()`에서 `Clear` → `DrawRenderQueue` → `Present`. `Renderer::Get()` 싱글톤. 생성자에서 콘솔 커서를 숨기고 소멸자에서 되돌린다. `Clear()`는 임시로 `system("cls")`, `Present()`는 더블 버퍼링 단계에서 채운다. |
+**2. `01.Engine` 마무리**
 
-**고칠 것**
+- 위 "정리가 필요한 설정" 처리
+- 커스텀 16색 RGB 팔레트 (선택). 콘솔 색상 슬롯의 실제 RGB를 바꾸는 기능
+- 최종 빌드·실행 확인 후 `main`에 머지
 
-- `Engine`: `class Renderer;` 전방 선언, `unique_ptr<Renderer> renderer` 멤버, 생성자에서 생성, `Engine::Draw()` 끝에서 `renderer->Draw()` 호출.
-- `Actor`: 생성자를 `Actor(const std::string& image = "", const Vector2& position = Vector2::Zero, Color color = Color::White)`로 바꾸고 `image` / `position` / `color` / `width` / `sortingOrder` 멤버 추가. `Draw()`에서 `Renderer::Get().Submit(...)` 호출. `GetPosition()` / `SetPosition()` 추가.
-- `TestActor`: 생성자에서 `Actor("P", Vector2(5, 5), Color::Green)`, `sortingOrder = 5`. `Tick()`을 방향키 이동으로 교체 (`VK_LEFT`/`RIGHT`/`UP`/`DOWN`, 화면 경계 0~39 / 0~24).
+**3. `02.Floor` 브랜치**
 
-**주의**: 강사 `TestActor::Tick()`은 ESC에서 `QuitGame()`을 부르는데 우리에겐 그 함수가 없다. ESC는 `Engine::Run()`에서 이미 처리하므로 그 부분은 빼고 진행한다.
+`main`에서 새로 딴다. 여기서부터 실제 게임이다.
 
-`Math`와 `Render` 폴더를 새로 만들면 `xcopy *.h ..\Includes\`가 하위 폴더까지 자동으로 복사한다.
+- 단일 층 격자 맵 (벽, 바닥, 출구)
+- 맵을 `Actor`로 그릴지 `Level`이 직접 그릴지 결정 필요
+- 플레이어 이동에 벽 충돌 판정
+- 출구 도달 시 `AddNewLevel<T>()`로 다음 층 전환
+- `RunState`로 체력 하나 유지 테스트
+- `(y * width) + x` 인덱스 변환이 타일 맵에서 계속 쓰인다
 
-## 그 이후
+## 알아둘 것
 
-- `6.EngineSetting`: 설정 파일 읽기. `..\Config\` 폴더가 필요해진다.
-- `7.DoubleBuffering`: `Renderer::Present()`를 채워 깜빡임 제거. 여기까지가 `01.Engine` 단계의 끝.
-- `01.Engine`을 닫으면 `main`에 머지하고 거기서 `02.Floor`를 딴다.
+- `TestActor`의 경계값 `39`, `24`는 하드코딩이다. 강사도 브랜치 19까지 그대로 뒀다. 우리 게임 코드를 만들 때 `Engine::Get().GetWidth()`로 바꾸면 된다.
+- `sortingOrder`는 `7.DoubleBuffering`부터 실제로 겹침 우선순위에 쓰인다. 빈 칸 표시는 `-1`이다.
+- `Includes/`는 CraftEngine 공개 헤더 전용이다. `NoWayDown`의 게임 헤더가 여기 들어가면 안 된다. 과거에 `Includes/Actor/TestActor.h`가 남아서 중복 정의가 난 적이 있다.
+- `Vector2::operator COORD()`가 Windows 함수 호출을 짧게 해준다. `SetConsoleScreenBufferSize`, `FillConsoleOutputCharacterA`, `WriteConsoleOutputA` 등에서 `Vector2`를 그대로 넘긴다.
 
-## 사용자와 진행하는 방식
-
-- 사용자가 코드를 직접 입력한다. 완성 코드를 한꺼번에 대신 작성하지 않는다.
-- 한 번에 한 줄 또는 함수 하나 정도만 제시하고, 사용자가 입력하면 다음으로 넘어간다.
-- 설명은 **아주 쉽게** 한다. 비유를 쓰고 문장을 짧게 끊는다. 사용자가 "더 쉽게"라고 하면 용어를 더 덜어낸다.
-- 이미 배운 개념은 반복 설명하지 않는다.
-- 질문은 설계상 중요한 지점에서만 한다.
-- 실제 코드는 반드시 코드 블록으로 제공한다.
-- 생략 표시로 `...`을 코드 안에 쓰지 않는다. 그대로 입력해서 빌드가 깨진 적이 있다.
-- 강사 저장소에 없는 내용을 강사 코드라고 단정하지 않는다. 확인이 필요하면 저장소를 직접 열어본다.
-- 사용자가 오류를 보내면 원인 하나씩 확인하고, 수정 후 빌드를 요청한다.
-
-## 자주 반복된 실수 (확인용 체크리스트)
+## 자주 반복된 실수 (확인용)
 
 - **저장 안 함**: VS에서 편집만 하고 `Ctrl+S`를 안 눌러 파일에 반영이 안 된 경우가 여러 번 있었다. 프로젝트 속성은 `적용`을 눌러도 `Ctrl+Shift+S`가 필요할 때가 있다.
-- **중복 붙여넣기**: 직접 타이핑한 코드 위에 같은 코드를 또 붙여넣어 함수가 두 번 정의된 적이 있다 (`Actor.h`의 getter, `Engine.cpp`의 생성자).
-- **대소문자**: `KeyCode`/`keyCode`, `KeyStates`/`keyStates`, `Input`/`input`. C++은 구분한다. 타입은 대문자 시작, 변수는 소문자 시작.
-- **중괄호 개수**: `Run()`을 닫는 `}`를 빠뜨려 뒤 함수들이 전부 이상한 에러를 냈다. 에러가 여러 개면 맨 위 것부터 본다.
+- **중복 붙여넣기**: 직접 타이핑한 코드 위에 같은 코드를 또 붙여넣어 함수가 두 번 정의된 적이 있다.
+- **대소문자**: `KeyCode`/`keyCode`, `Input`/`input`. 타입은 대문자 시작, 변수는 소문자 시작.
+- **중괄호 개수**: 함수를 닫는 `}`를 빠뜨리면 그 뒤 함수들이 전부 엉뚱한 에러를 낸다. 에러가 여러 개면 맨 위 것부터 본다.
 - **설정 칸 헷갈림**: 포함 디렉터리 값을 링커 출력 파일 칸에 넣은 적이 있다. 칸을 비우면 VS가 빈 값을 써서 링커가 엉뚱한 이름의 exe를 만든다.
-- **터미널**: 사용자는 cmd를 쓴다. `rm`, `ls`, `cat`이 없다. `rmdir /s /q`, `dir`, `type`을 쓴다.
+- **한 구성만 수정**: 프로젝트 속성은 `모든 구성`으로 놓고 고쳐야 Debug/Release 둘 다 적용된다. 값이 서로 다른 항목은 빈칸으로 보이니 구성을 하나씩 바꿔가며 넣는다.
 
 ## 면접용 MVP 설명
 
@@ -187,3 +216,5 @@ Level은 `shared_ptr`로 Actor를 소유하고 Actor는 `weak_ptr`로 Level을 �
 Actor는 순회 중 즉시 제거하지 않고 삭제 표시 후 안전한 시점에 제거한다.
 엔진은 DLL로 분리되어 있고, 게임 프로젝트는 헤더와 lib만 가져다 쓴다.
 같은 헤더를 엔진이 읽으면 dllexport, 게임이 읽으면 dllimport가 되도록 `CRAFT_API` 매크로로 전환한다.
+렌더링은 액터가 직접 그리지 않고 렌더 명령을 큐에 제출하는 방식이다.
+한 프레임의 모든 명령을 메모리 배열에 모은 뒤 콘솔에 한 번만 출력하고, 화면 버퍼 두 개를 번갈아 활성화해 깜빡임을 없앴다.
