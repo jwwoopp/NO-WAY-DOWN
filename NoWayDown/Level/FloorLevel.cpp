@@ -1,0 +1,181 @@
+﻿#include "FloorLevel.h"
+#include <Renderer/Renderer.h>
+#include <iostream>
+
+using namespace Craft;
+
+void FloorLevel::OnInitialized()
+{
+	// 이걸 안찍으면 엔진이 매 프레임 또 부르고, 맵을 1초에 120번 다시 읽음.
+	Level::OnInitialized();
+
+	LoadMap("../Assets/Map.txt");
+}
+
+// virtual 함수는 한번도 안불려도 본문이 있어야 함.
+// 선언만 하고 두면 링크 에러 뜸.
+void FloorLevel::Draw()
+{
+	for (int y = 0; y < height; ++y)
+	{
+		for (int x = 0; x < width; ++x)
+		{
+			std::string image = ".";
+			Color color = Color::Blue;
+
+			switch (GetTile(x, y))
+			{
+			case TileType::Wall:
+				image = "#";
+				color = Color::White;
+				break;
+
+			case TileType::Exit:
+				image = "E";
+				color = Color::Yellow;
+				break;
+
+			default:
+				break;
+			}
+
+			Renderer::Get().Submit(image, Vector2(x, y), color, 0);
+		}
+	}
+	Level::Draw();
+}
+
+void FloorLevel::LoadMap(const std::string& filename)
+{
+	FILE* file = nullptr;
+	// fopen_s는 C함수라 옛날식 문자열 (const char*)만 받음.
+	// 그래서 std::string 안의 글자들을 C가 이해하는 형태로 내주는 함수.
+	fopen_s(&file, filename.c_str(), "rt");
+
+	if (!file)
+	{
+		std::cout << "Failed to open map file.\n";
+		__debugbreak();
+		return;
+	}
+
+	// 파일 끝으로 이동해서 그 위치를 읽으면 그게 파일 크기.
+	// 맨 끝으로 이동.
+	fseek(file, 0, SEEK_END);
+	// 지금 몇 번째인지.
+	long fileSize = ftell(file);
+	// 다시 맨 앞으로.
+	rewind(file);
+
+	// 빈 파일이면 더 진행할 수 없음.
+	if (fileSize <= 0)
+	{
+		std::cout << "Map file is empty.\n";
+		fclose(file);
+		file = nullptr;
+		return;
+	}
+
+	// 파일 크기만큼 버퍼 확보하고 읽기.
+	// 파일 크기 만큼 상자를 만듦.
+	// {} 로 전부 0으로 채움.
+	// new는 힙에서 빌려오는 거라 크기를 그때그때 정할 수 있음.
+	char* buffer = new char[fileSize] {};
+	// 대신 이번엔 크기를 실행 중에 정함.
+	// char buffer[fileSize] 안됨. 대괄호 안에는 미리 정해진 숫자만 들어갈 수 있음.
+	size_t readSize = fread(buffer, sizeof(char), fileSize, file);
+
+	// fread는 fileSize보다 많이 읽을 수 없지만, 분석기에게 명시.
+	if (readSize > static_cast<size_t>(fileSize))
+	{
+		readSize = static_cast<size_t>(fileSize);
+	}
+
+	// 맵을 글자 하나씩 훑으면서 tiles를 채움.
+	int x = 0;
+	int y = 0;
+
+	for (size_t index = 0; index < readSize; ++index)
+	{
+		char mapCharacter = buffer[index];
+
+		// 줄바꿈을 만나면 x를 0으로 돌리고, y를 1 늘림.
+		if (mapCharacter == '\n')
+		{
+			// 첫 줄의 길이를 맵 너비로 확정. 둘째 줄부터는 넘어감.
+			if (width == 0)
+			{
+				width = x;
+			}
+
+			x = 0;
+			++y;
+			continue;
+		}
+
+		// 글자를 타일로 바꿈.
+		switch (mapCharacter)
+		{
+		case '#':
+			tiles.emplace_back(TileType::Wall);
+			break;
+
+		case 'e':
+			tiles.emplace_back(TileType::Exit);
+			break;
+
+		case 'p':
+			// 플레이어 자리는 지형상 바닥. 좌표만 따로 기억.
+			playerStart = Vector2(x, y);
+			tiles.emplace_back(TileType::Floor);
+			break;
+
+		default:
+			// 예상 못한 글자가 와도 바닥으로 넘어가게 하려는 것.
+			// 맵 파일에 오타가 있더라도 게임이 안 죽음.
+			tiles.emplace_back(TileType::Floor);
+			break;
+		}
+
+		++x;
+	}
+
+	// 마지막 줄에 개행이 없으면 width가 아직 0일 수 있음.
+	if (width == 0)
+	{
+		width = x;
+	}
+
+	if (width > 0)
+	{
+		// 높이는 나눗셈으로 구함.
+		// 칸 / 너비 = 높이(줄)
+		// y를 세는 법도 있지만 마지막 줄에 개행이 없으면 그 줄이 안 세짐.
+		height = static_cast<int>(tiles.size()) / width;
+	}
+	// 배열로 빌렸으니 배열로 돌려줘야함. - 메모리 leak 발생할 수 있음.
+	delete[] buffer;
+	buffer = nullptr;
+	
+	fclose(file);
+	file = nullptr;
+}
+
+// 그냥 배열을 읽으면 맵 밖 좌표에서 프로그램이 죽음.
+TileType FloorLevel::GetTile(int x, int y) const
+{
+	// Wall을 돌려준다. 맵 밖은 벽으로 취급.
+	// isWalkable이 자동으로 false.
+	if (x < 0 || x >= width || y < 0 || y >= height)
+	{
+		return TileType::Wall;
+	}
+
+	return tiles[(y * width) + x];
+}
+
+// 경계검사까지 해주는 IsWalkable.
+bool FloorLevel::IsWalkable(const Vector2& position) const
+{
+	return GetTile(position.x, position.y) != TileType::Wall;
+}

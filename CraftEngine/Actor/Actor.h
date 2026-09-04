@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 #include <Core/Core.h>
 // Actor가 화면 문자 string, 위치 Vectotr2, 색상 Color를 저장하기 위해 필요한 헤더.
 #include <Math/Vector2.h>
