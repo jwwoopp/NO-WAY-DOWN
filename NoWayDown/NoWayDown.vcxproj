@@ -99,12 +99,14 @@
     </PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="Actor\Player.cpp" />
     <ClCompile Include="Actor\TestActor.cpp" />
     <ClCompile Include="Level\FloorLevel.cpp" />
     <ClCompile Include="Level\TestLevel.cpp" />
     <ClCompile Include="Main.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Actor\Player.h" />
     <ClInclude Include="Actor\TestActor.h" />
     <ClInclude Include="Level\TestLevel.h" />
     <ClInclude Include="Level\FloorLevel.h" />
