@@ -1,12 +1,7 @@
 <Solution>
   <Configurations>
     <Platform Name="x64" />
-    <Platform Name="x86" />
   </Configurations>
-  <Project Path="CraftEngine/CraftEngine.vcxproj" Id="65222662-76c8-4d4c-9681-b895af6fd911">
-    <Build Solution="*|x86" Project="false" />
-  </Project>
-  <Project Path="WantedPart2/WantedPart2.vcxproj" Id="c2937d6e-d9e4-469a-8f61-845ea1048f4b">
-    <Build Solution="*|x86" Project="false" />
-  </Project>
+  <Project Path="CraftEngine/CraftEngine.vcxproj" Id="65222662-76c8-4d4c-9681-b895af6fd911" />
+  <Project Path="NoWayDown/NoWayDown.vcxproj" Id="3e6ea26b-d113-47dc-8fc0-149a94dac724" />
 </Solution>

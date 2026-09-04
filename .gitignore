@@ -10,3 +10,7 @@ Release/
 *.ilk
 *.obj
 *.tlog
+Includes/
+Lib/
+*.lib
+*.dll
