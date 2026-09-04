@@ -18,7 +18,7 @@ namespace Craft
 		Actor(
 			const std::string& image = "",
 			const Vector2& position = Vector2::Zero,
-			Color colr = Color::White
+			Color color = Color::White
 		);
 		virtual ~Actor();
 
@@ -27,6 +27,8 @@ namespace Craft
 		virtual void Draw();
 
 		void Destroy();
+
+		void QuitGame();
 
 		inline bool HasBeganPlay() const
 		{

@@ -1,5 +1,6 @@
 #include "Actor.h"
 #include <Renderer/Renderer.h>
+#include <Engine/Engine.h>
 
 namespace Craft
 {
@@ -33,6 +34,11 @@ namespace Craft
 
 	void Actor::Draw()
 	{
+		if (!IsActive())
+		{
+			return;
+		}
+
 		// Actor는 직접 콘솔에 출력하지 않고
 		// 자신의 문자, 위치, 색상, 순서를 Renderer에 전달.
 		// Renderer는 모든 요청을 모았다가 Draw단계에서 한번에 처리.
@@ -52,5 +58,9 @@ namespace Craft
 		hasExpired = true;
 	}
 
+	void Actor::QuitGame()
+	{
+		Engine::Get().Quit();
+	}
 
 }

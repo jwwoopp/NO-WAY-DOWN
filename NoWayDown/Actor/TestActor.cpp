@@ -15,6 +15,29 @@ void TestActor::Tick(float deltaTime)
 {
 	Actor::Tick(deltaTime);
 
+	const int size = 256;
+	char fpsString[size] = {};
+
+	// 값을 글자로 만듦.
+	sprintf_s(
+		fpsString,
+		size,
+		"dt: %f | fps: %.1f",
+		deltaTime,
+		(1.0f / deltaTime)
+	);
+
+	// 콘솔 창 제목 표시줄에 글자를 씀.
+	SetConsoleTitleA(fpsString);
+
+	// GetKey가 아니라 GetKeyDown을 써야함.
+	// 누른 순간 딱 한번만 반응.
+
+	if (Input::Get().GetKeyDown(VK_ESCAPE))
+	{
+		QuitGame();
+	}
+
 	// 이동 구현.
 	if (Input::Get().GetKey(VK_LEFT) && position.x > 0)
 	{
