@@ -71,8 +71,7 @@
       <EnableSegmentHeap>true</EnableSegmentHeap>
     </Manifest>
     <PreBuildEvent>
-      <Command>
-      </Command>
+      <Command>xcopy ..\Assets\* $(OutDir)..\Assets\ /e /y /i</Command>
     </PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -95,6 +94,9 @@
     <Manifest>
       <EnableSegmentHeap>true</EnableSegmentHeap>
     </Manifest>
+    <PreBuildEvent>
+      <Command>xcopy ..\Assets\* $(OutDir)..\Assets\ /e /y /i</Command>
+    </PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="Actor\TestActor.cpp" />
