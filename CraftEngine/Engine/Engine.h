@@ -7,6 +7,7 @@ namespace Craft
 {
 	class Level;
 	class Input;
+	class Renderer;
 
 	class CRAFT_API Engine
 	{
@@ -44,5 +45,6 @@ namespace Craft
 		std::shared_ptr<Level> mainLevel;
 		std::shared_ptr<Level> nextLevel;
 		std::unique_ptr<Input> input;
+		std::unique_ptr<Renderer> renderer;
 	};
 }

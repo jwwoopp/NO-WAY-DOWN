@@ -1,6 +1,7 @@
 ﻿#include "Engine.h"
 #include <Input/Input.h>
 #include <Level/Level.h>
+#include <Renderer/Renderer.h>
 #include <cassert>
 #include <iostream>
 #include <Windows.h>
@@ -9,7 +10,14 @@ namespace Craft
 {
 	Engine::Engine()
 	{
+		// Renderer의 전체 구조를 Engine.cpp에게 알려줌.
 		input = std::make_unique<Input>();
+
+		// Engine 생성 시 실제 Renderer 객체 하나를 힙에 생성.
+		// 힙에 만들어진 실제 Render 객체의 주소를 unique_ptr에 넣음.
+		// Engine이 살아있는 동안 Renderer도 유지됨.
+		// Engine이 사라지면 unique_ptr이 Renderer을 자동 삭제.
+		renderer = std::make_unique<Renderer>();
 	}
 	Engine::~Engine()
 	{
@@ -126,5 +134,12 @@ namespace Craft
 		}
 
 		mainLevel->Draw();
+
+		if (!renderer)
+		{
+			return;
+		}
+
+		renderer->Draw();
 	}
 }
