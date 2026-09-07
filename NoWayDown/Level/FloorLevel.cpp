@@ -1,4 +1,5 @@
 ﻿#include "FloorLevel.h"
+#include <Actor/Player.h>
 #include <Renderer/Renderer.h>
 #include <iostream>
 
@@ -8,8 +9,11 @@ void FloorLevel::OnInitialized()
 {
 	// 이걸 안찍으면 엔진이 매 프레임 또 부르고, 맵을 1초에 120번 다시 읽음.
 	Level::OnInitialized();
-
+	// 맵을 읽어 플레이어의 좌표를 찾음.
 	LoadMap("../Assets/Map.txt");
+	// 그 좌표에 플레이어를 생성함.
+	SpawnActor<Player>(playerStart);
+	
 }
 
 // virtual 함수는 한번도 안불려도 본문이 있어야 함.

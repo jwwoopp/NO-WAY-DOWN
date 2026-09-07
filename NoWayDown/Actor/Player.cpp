@@ -1,4 +1,5 @@
 ﻿#include "Player.h"
+#include <Engine/Engine.h>
 #include <Input/Input.h>
 #include <Level/FloorLevel.h>
 #include <Windows.h>
@@ -16,10 +17,14 @@ Player::Player(const Vector2& position)
 void Player::Tick(float deltaTime)
 {
 	Actor::Tick(deltaTime);
-
 	ProcessMove(deltaTime);
-	// 나중에: ProcessExit();
-	// 나중에: ProcessQuit();
+	
+	// ESC 판단은 게임의 Player가 하고 실제 종료 요청만 Engine에 전달.
+	if (Input::Get().GetKeyDown(VK_ESCAPE))
+	{
+		QuitGame();
+	}
+
 }
 
 void Player::ProcessMove(float deltaTime)
@@ -85,5 +90,12 @@ void Player::ProcessMove(float deltaTime)
 	}
 
 	SetPosition(nextPosition);
+
+	// 이동한 칸이 Exit면 새 FloorLevel을 다음 레벨로 예약.
+	if (floor->GetTile(nextPosition.x, nextPosition.y) == TileType::Exit)
+	{
+		// Engine이 프레임 끝에 교체.
+		Engine::Get().AddNewLevel<FloorLevel>();
+	}
 
 }
