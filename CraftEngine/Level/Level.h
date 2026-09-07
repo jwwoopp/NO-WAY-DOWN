@@ -1,7 +1,8 @@
-#pragma once
+﻿#pragma once
 
 #include <Core/Core.h>
 #include <Actor/Actor.h>
+#include <Core/CraftObject.h>
 #include <memory>
 #include <vector>
 
@@ -9,9 +10,14 @@ namespace Craft
 {
 	class Engine;
 
-	class CRAFT_API Level : public std::enable_shared_from_this<Level>
+	class CRAFT_API Level :
+		public CraftObject,
+		public std::enable_shared_from_this<Level>
 	{
-			friend class Engine;
+		// 커스텀 타입 설정.
+		TYPE_DECLARATIONS(Level, CraftObject)
+
+		friend class Engine;
 
 		public:
 			Level();

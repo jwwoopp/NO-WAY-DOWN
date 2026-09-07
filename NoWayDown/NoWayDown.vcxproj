@@ -71,8 +71,7 @@
       <EnableSegmentHeap>true</EnableSegmentHeap>
     </Manifest>
     <PreBuildEvent>
-      <Command>
-      </Command>
+      <Command>xcopy ..\Assets\* $(OutDir)..\Assets\ /e /y /i</Command>
     </PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -95,15 +94,24 @@
     <Manifest>
       <EnableSegmentHeap>true</EnableSegmentHeap>
     </Manifest>
+    <PreBuildEvent>
+      <Command>xcopy ..\Assets\* $(OutDir)..\Assets\ /e /y /i</Command>
+    </PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="Actor\Player.cpp" />
     <ClCompile Include="Actor\TestActor.cpp" />
+    <ClCompile Include="Level\FloorLevel.cpp" />
     <ClCompile Include="Level\TestLevel.cpp" />
     <ClCompile Include="Main.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Actor\Player.h" />
     <ClInclude Include="Actor\TestActor.h" />
+    <ClInclude Include="Game\RunState.h" />
     <ClInclude Include="Level\TestLevel.h" />
+    <ClInclude Include="Level\FloorLevel.h" />
+    <ClInclude Include="Map\TileType.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

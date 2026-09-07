@@ -117,6 +117,7 @@ xcopy ..\Config\* $(OutDir)..\Config\ /e /y /i</Command>
   <ItemGroup>
     <ClInclude Include="Actor\Actor.h" />
     <ClInclude Include="Core\Core.h" />
+    <ClInclude Include="Core\CraftObject.h" />
     <ClInclude Include="Engine\Engine.h" />
     <ClInclude Include="Input\Input.h" />
     <ClInclude Include="Level\Level.h" />
