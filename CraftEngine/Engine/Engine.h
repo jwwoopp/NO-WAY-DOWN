@@ -2,6 +2,7 @@
 
 #include <Core/Core.h>
 #include <memory>
+#include <utility>
 
 namespace Craft
 {
@@ -25,11 +26,19 @@ namespace Craft
 		void Run();
 		void Quit();
 
-		template<typename T, typename = std::enable_if_t<std::is_base_of<Level, T>::value>>
-		void AddNewLevel()
+		// RunState 같은 생성자도 함께 전달하기 위해 변경.
+		// AddNewLevel을 호출하면 runState가 args안에 들어감.
+		// std::forward<Args>(args)...가 그 값을 make_shared<T>에 넘김.
+		// make_shared가 실행되므로 결과적으로 FloorLevel 생성자가 값을 받음.
+		template<typename T, typename... Args>
+		void AddNewLevel(Args&&... args)
 		{
-			nextLevel = std::make_shared<T>();
+			nextLevel = std::make_shared<T>(std::forward<Args>(args)...);
 		}
+
+
+
+
 
 		// Get은 공용 Engine을 찾고,
 		static Engine& Get();

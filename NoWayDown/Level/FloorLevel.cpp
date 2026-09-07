@@ -1,16 +1,32 @@
 ﻿#include "FloorLevel.h"
 #include <Actor/Player.h>
+#include <Engine/Engine.h>
 #include <Renderer/Renderer.h>
 #include <iostream>
 
 using namespace Craft;
 
+FloorLevel::FloorLevel(const std::shared_ptr<RunState>& newRunState)
+	// 전달받은 shared_ptr를 멤버 변수 runState에 저장하는 생성자 초기화 목록.
+	// 두 shared_ptr이 같은 RunState를 가리키므로
+	// Level이 바뀌어도 동일한 진행데이터를 넘길 수 있다.
+	: runState(newRunState)
+{
+}
+
+void FloorLevel::MoveToNextFloor()
+{
+	++runState->currentFloor;
+	Engine::Get().AddNewLevel<FloorLevel>(runState);
+}
+
 void FloorLevel::OnInitialized()
 {
 	// 이걸 안찍으면 엔진이 매 프레임 또 부르고, 맵을 1초에 120번 다시 읽음.
 	Level::OnInitialized();
-	// 맵을 읽어 플레이어의 좌표를 찾음.
-	LoadMap("../Assets/Map.txt");
+	// 층수에 맞는 맵을 읽어 플레이어의 좌표를 찾음.
+	std::string mapFilename = "../Assets/Floor" + std::to_string(runState->currentFloor) + ".txt";
+	LoadMap(mapFilename);
 	// 그 좌표에 플레이어를 생성함.
 	SpawnActor<Player>(playerStart);
 	
@@ -46,6 +62,19 @@ void FloorLevel::Draw()
 			Renderer::Get().Submit(image, Vector2(x, y), color, 0);
 		}
 	}
+	Renderer::Get().Submit(
+		"Floor: " + std::to_string(runState->currentFloor),
+		Vector2(22, 1),
+		Color::White,
+		1
+	);
+
+	Renderer::Get().Submit(
+		"HP: " + std::to_string(runState->health),
+		Vector2(22, 2),
+		Color::Red,
+		1
+	);
 	Level::Draw();
 }
 

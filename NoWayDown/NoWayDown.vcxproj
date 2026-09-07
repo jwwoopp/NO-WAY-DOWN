@@ -108,6 +108,7 @@
   <ItemGroup>
     <ClInclude Include="Actor\Player.h" />
     <ClInclude Include="Actor\TestActor.h" />
+    <ClInclude Include="Game\RunState.h" />
     <ClInclude Include="Level\TestLevel.h" />
     <ClInclude Include="Level\FloorLevel.h" />
     <ClInclude Include="Map\TileType.h" />
