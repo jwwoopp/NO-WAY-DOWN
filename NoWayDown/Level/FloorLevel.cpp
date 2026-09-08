@@ -128,6 +128,7 @@ void FloorLevel::Tick(float deltaTime)
 		if (Input::Get().GetKeyDown('R'))
 		{
 			runState->health = 100;
+			runState->medicineCount = 0;
 			runState->currentFloor = 1;
 			runState->isGameOver = false;
 			runState->isCleared = false;
@@ -135,6 +136,11 @@ void FloorLevel::Tick(float deltaTime)
 		}
 
 		return;
+	}
+	// 플레이 중에만 H로 회복약 사용.
+	if (Input::Get().GetKeyDown('H'))
+	{
+		UseMedicine();
 	}
 
 	// Player와 Zombie가 계속 등장하도록 호출.
@@ -171,6 +177,13 @@ void FloorLevel::Draw()
 			Renderer::Get().Submit(image, Vector2(x, y), color, 0);
 		}
 	}
+
+	for (const Vector2& medicinePosition : medicinePositions)
+	{
+		Renderer::Get().Submit(
+			"M", medicinePosition, Color::Green, 3);
+	}
+
 	if (runState->debugMode)
 	{
 		Renderer::Get().Submit(
@@ -193,6 +206,10 @@ void FloorLevel::Draw()
 		Color::Red,
 		1
 	);
+
+	Renderer::Get().Submit(
+		"H: Med " + std::to_string(runState->medicineCount),
+		Vector2(22, 4), Color::Green, 1);
 
 	if (runState->isGameOver || runState->isCleared)
 	{
@@ -297,6 +314,12 @@ void FloorLevel::LoadMap(const std::string& filename)
 		case 'z':
 			// z는 Actor가 놓일 위치일 뿐 지형은 바닥임.
 			zombieStarts.emplace_back(x, y);
+			tiles.emplace_back(TileType::Floor);
+			break;
+
+		case 'm':
+			// 회복약의 위치는 따로 기록하고, 그 아래 지형은 바닥임.
+			medicinePositions.emplace_back(x, y);
 			tiles.emplace_back(TileType::Floor);
 			break;
 
@@ -407,4 +430,38 @@ bool FloorLevel::HasLineOfSight(
 	}
 
 	return true;
+}
+
+// 약 하나로 체력 30을 회복하고, 최대 체력은 100.
+bool FloorLevel::UseMedicine()
+{
+	if (runState->isGameOver || runState->isCleared
+		|| runState->medicineCount <= 0 || runState->health >= 100)
+	{
+		return false;
+	}
+
+	--runState->medicineCount;
+	runState->health += 30;
+
+	if (runState->health > 100)
+	{
+		runState->health = 100;
+	}
+
+	return true;
+}
+
+void FloorLevel::PickUpMedicineAt(const Vector2& position)
+{
+	for (auto iter = medicinePositions.begin();
+		iter != medicinePositions.end(); ++iter)
+	{
+		if (*iter == position)
+		{
+			++runState->medicineCount;
+			medicinePositions.erase(iter);
+			return;
+		}
+	}
 }

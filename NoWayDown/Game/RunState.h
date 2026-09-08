@@ -6,6 +6,8 @@ struct RunState
 	int currentFloor = 1;
 	// health - 층이 바뀌어도 유지될 체력.
 	int health = 100;
+	// medicine - 층이 바뀌어도 가져갈 수 있는 회복약.
+	int medicineCount = 0;
 
 	bool debugMode = false;
 	bool isGameOver = false;

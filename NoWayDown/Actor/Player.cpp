@@ -142,6 +142,7 @@ void Player::ProcessMove(float deltaTime)
 	}
 
 	SetPosition(nextPosition);
+	floor->PickUpMedicineAt(nextPosition);
 
 	// 이동한 칸이 Exit면 새 FloorLevel을 다음 레벨로 예약.
 	if (floor->GetTile(nextPosition.x, nextPosition.y) == TileType::Exit)

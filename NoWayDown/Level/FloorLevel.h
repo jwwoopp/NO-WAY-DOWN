@@ -40,6 +40,8 @@ public:
 
 	Craft::Vector2 GetPlayerPosition() const;
 	void DamagePlayer(int amount);
+	bool UseMedicine();
+	void PickUpMedicineAt(const Craft::Vector2& position);
 	bool IsDebugMode() const { return runState->debugMode; }
 
 	bool AttackZombieAt(
@@ -73,4 +75,6 @@ private:
 
 	// 맵에는 좀비가 여럿 있을 수 있으므로 시작 좌표를 vector에 모음.
 	std::vector<Craft::Vector2> zombieStarts;
+	// 바닥에 남아 있는 회복약들의 위치. 주운 약의 개수는 RunState에서 관리.
+	std::vector<Craft::Vector2> medicinePositions;
 };
