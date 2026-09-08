@@ -1,5 +1,7 @@
 ﻿#include "FloorLevel.h"
 #include <Actor/Player.h>
+#include <Actor/Zombie.h>
+
 #include <Engine/Engine.h>
 #include <Renderer/Renderer.h>
 #include <iostream>
@@ -28,8 +30,14 @@ void FloorLevel::OnInitialized()
 	std::string mapFilename = "../Assets/Floor" + std::to_string(runState->currentFloor) + ".txt";
 	LoadMap(mapFilename);
 	// 그 좌표에 플레이어를 생성함.
-	SpawnActor<Player>(playerStart);
+	// SpawnActor<Player>(playerStart);
+	player = SpawnActor<Player>(playerStart);
 	
+	// 좀비 생성.
+	for (const Vector2& zombieStart : zombieStarts)
+	{
+		SpawnActor<Zombie>(zombieStart);
+	}
 }
 
 // virtual 함수는 한번도 안불려도 본문이 있어야 함.
@@ -163,6 +171,12 @@ void FloorLevel::LoadMap(const std::string& filename)
 			tiles.emplace_back(TileType::Floor);
 			break;
 
+		case 'z':
+			// z는 Actor가 놓일 위치일 뿐 지형은 바닥임.
+			zombieStarts.emplace_back(x, y);
+			tiles.emplace_back(TileType::Floor);
+			break;
+
 		default:
 			// 예상 못한 글자가 와도 바닥으로 넘어가게 하려는 것.
 			// 맵 파일에 오타가 있더라도 게임이 안 죽음.
@@ -211,4 +225,18 @@ TileType FloorLevel::GetTile(int x, int y) const
 bool FloorLevel::IsWalkable(const Vector2& position) const
 {
 	return GetTile(position.x, position.y) != TileType::Wall;
+}
+
+Vector2 FloorLevel::GetPlayerPosition() const
+{
+	// lock()은 Player가 아직 살아 있는지 확인하고 잠깐 사용할 수 있게 해주는 함수.
+	// 살아 있으면 현재 위치를 반환, 이미 사라지면 안전하게 시작 위치 반환.
+	std::shared_ptr<Player> foundPlayer = player.lock();
+
+	if (!foundPlayer)
+	{
+		return playerStart;
+	}
+
+	return foundPlayer->GetPosition();
 }
