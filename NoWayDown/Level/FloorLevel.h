@@ -22,6 +22,12 @@ public:
 	// 해당 좌표로 이동할 수 있는지 판정.
 	// Player가 이동 전에 물어봐야 하니까 public.
 	bool IsWalkable(const Craft::Vector2& position) const;
+	// 지형 검사와 좀비 검사를 분리했으므로 A*의 기존 지형 판단에는 영향이 없음.
+	bool HasZombieAt(const Craft::Vector2& position) const;
+
+	bool HasLineOfSight(
+		const Craft::Vector2& from,
+		const Craft::Vector2& to) const;
 
 	// 층 전환은 FloorLevel이 담당하게 함.
 	void MoveToNextFloor();
@@ -33,10 +39,17 @@ public:
 	int GetHeight() const { return height; }
 
 	Craft::Vector2 GetPlayerPosition() const;
+	void DamagePlayer(int amount);
+	bool IsDebugMode() const { return runState->debugMode; }
+
+	bool AttackZombieAt(
+		const Craft::Vector2& targetPosition,
+		int damage);
 
 private:
 	// OnInitialized와 Draw는 Engine이 부르기 때문에 private.
 	virtual void OnInitialized() override;
+	virtual void Tick(float deltaTime) override;
 	virtual void Draw() override;
 
 	// 맵 파일을 읽어 tiles를 채우는 함수.

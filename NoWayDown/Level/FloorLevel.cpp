@@ -3,8 +3,11 @@
 #include <Actor/Zombie.h>
 
 #include <Engine/Engine.h>
+#include <Input/Input.h>
 #include <Renderer/Renderer.h>
+#include <Windows.h>
 #include <iostream>
+#include <cstdlib>
 
 using namespace Craft;
 
@@ -17,9 +20,79 @@ FloorLevel::FloorLevel(const std::shared_ptr<RunState>& newRunState)
 }
 
 void FloorLevel::MoveToNextFloor()
-{
+{	
+	// 4층 출구에 도착하면 클리어를 기록하고 5층 생성을 요청하지 않음.
+	if (runState->currentFloor >= 4)
+	{
+		runState->isCleared = true;
+		return;
+	}
 	++runState->currentFloor;
 	Engine::Get().AddNewLevel<FloorLevel>(runState);
+}
+
+void FloorLevel::DamagePlayer(int amount)
+{
+
+	// 탈출한 프레임에 좀비의 공격 처리가 남아있어도 피해를 받지 않게 함.
+	if (runState->isGameOver || runState->isCleared)
+	{
+		return;
+	}
+
+	runState->health -= amount;
+
+	if (runState->health <= 0)
+	{
+		runState->health = 0;
+		runState->isGameOver = true;
+	}
+}
+// FloorLevel이 현재 Actor를 하나씩 확인하고,
+bool FloorLevel::AttackZombieAt(
+	const Vector2& targetPosition,
+	int damage)
+{
+	for (const std::shared_ptr<Actor>& actor : actorList)
+	{
+		std::shared_ptr<Zombie> zombie = Cast<Zombie>(actor);
+
+		// 해당 좌표의 Zombie를 찾으면 피해를 줍니다.
+		if (!zombie || !zombie->IsActive())
+		{
+			continue;
+		}
+
+		if (zombie->GetPosition() == targetPosition)
+		{
+			// 맞혔으면 true.	
+			zombie->TakeDamage(damage);
+			return true;
+		}
+		// 빈 공간을 공격하면 false.
+	}
+
+	return false;
+}
+
+// 이 칸에 살아있는 좀비가 서있는 지 여부 확인하는 함수.
+// Player가 이 검사를 해서 바닥이어도 좀비가 있으면 멈춤.
+// A*는 이걸 사용하지 않기에 벽과 바닥을 판단하는 규칙은 그대로임.
+// 따라서 Player의 이동만 막음.
+bool FloorLevel::HasZombieAt(const Vector2& position) const
+{
+	for (const std::shared_ptr<Actor>& actor : actorList)
+	{
+		std::shared_ptr<Zombie> zombie = Cast<Zombie>(actor);
+
+		if (zombie && zombie->IsActive()
+			&& zombie->GetPosition() == position)
+		{
+			return true;
+		}
+	}
+
+	return false;
 }
 
 void FloorLevel::OnInitialized()
@@ -38,6 +111,34 @@ void FloorLevel::OnInitialized()
 	{
 		SpawnActor<Zombie>(zombieStart);
 	}
+}
+
+void FloorLevel::Tick(float deltaTime)
+{
+	if (Input::Get().GetKeyDown(VK_F1))
+	{
+		// true와 false를 뒤집음.
+		// F1을 누를 때마다 디버그 모드가 켜지고 꺼짐.
+		runState->debugMode = !runState->debugMode;
+	}
+
+	// 클리어 때도 Actor 업데이트가 멈추고 R 입력을 받음.
+	if (runState->isGameOver || runState->isCleared)
+	{
+		if (Input::Get().GetKeyDown('R'))
+		{
+			runState->health = 100;
+			runState->currentFloor = 1;
+			runState->isGameOver = false;
+			runState->isCleared = false;
+			Engine::Get().AddNewLevel<FloorLevel>(runState);
+		}
+
+		return;
+	}
+
+	// Player와 Zombie가 계속 등장하도록 호출.
+	Level::Tick(deltaTime);
 }
 
 // virtual 함수는 한번도 안불려도 본문이 있어야 함.
@@ -70,6 +171,15 @@ void FloorLevel::Draw()
 			Renderer::Get().Submit(image, Vector2(x, y), color, 0);
 		}
 	}
+	if (runState->debugMode)
+	{
+		Renderer::Get().Submit(
+			"DEBUG ON",
+			Vector2(22, 3),
+			Color::Yellow,
+			1);
+	}
+	
 	Renderer::Get().Submit(
 		"Floor: " + std::to_string(runState->currentFloor),
 		Vector2(22, 1),
@@ -83,6 +193,19 @@ void FloorLevel::Draw()
 		Color::Red,
 		1
 	);
+
+	if (runState->isGameOver || runState->isCleared)
+	{
+		Renderer::Get().Submit(
+			runState->isCleared ? "ESCAPED!" : "GAME OVER",
+			Vector2(22, 5),
+			runState->isCleared ? Color::Green : Color::Red,
+			10);
+
+		Renderer::Get().Submit(
+			"R: Restart", Vector2(22, 6), Color::White, 10);
+	}
+
 	Level::Draw();
 }
 
@@ -239,4 +362,49 @@ Vector2 FloorLevel::GetPlayerPosition() const
 	}
 
 	return foundPlayer->GetPosition();
+}
+
+bool FloorLevel::HasLineOfSight(
+	const Vector2& from,
+	const Vector2& to) const
+{
+	// 현재 검사 중인 칸.
+	int x = from.x;
+	int y = from.y;
+
+	// 두 위치의 거리.
+	int deltaX = std::abs(to.x - from.x);
+	int deltaY = std::abs(to.y - from.y);
+
+	// 좌표가 움직일 방향.
+	int stepX = from.x < to.x ? 1 : -1;
+	int stepY = from.y < to.y ? 1 : -1;
+
+	// 실제 직선에 가깝게 가려면 x와 y 중 어느 쪽을 움직일지 정하는 값.
+	int error = deltaX - deltaY;
+
+	while (x != to.x || y != to.y)
+	{
+		int twiceError = error * 2;
+
+		if (twiceError > -deltaY)
+		{
+			error -= deltaY;
+			x += stepX;
+		}
+
+		if (twiceError < deltaX)
+		{
+			error += deltaX;
+			y += stepY;
+		}
+
+		// 지나가는 칸에서 벽을 만나면 시야가 막혔다고 반환함.
+		if (GetTile(x, y) == TileType::Wall)
+		{
+			return false;
+		}
+	}
+
+	return true;
 }

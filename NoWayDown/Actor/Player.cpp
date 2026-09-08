@@ -2,6 +2,7 @@
 #include <Engine/Engine.h>
 #include <Input/Input.h>
 #include <Level/FloorLevel.h>
+#include <Renderer/Renderer.h>
 #include <Windows.h>
 
 using namespace Craft;
@@ -19,12 +20,59 @@ void Player::Tick(float deltaTime)
 	Actor::Tick(deltaTime);
 	ProcessMove(deltaTime);
 	
+	// attackTime은 다음 공격까지 남은 시간.
+	// 공격하면 0.4초로 설정하고, 매 프레임 줄어듦.
+	// 빗나가도 쿨타임이 적용되며, 쿨타임 동안 누른 Z는 무시 됨.
+	if (attackTimer > 0.0f)
+	{
+		attackTimer -= deltaTime;
+	}
+
+	if (attackEffectTimer > 0.0f)
+	{
+		attackEffectTimer -= deltaTime;
+	}
+
+	// Z키 한 번 누를 때마다 바라보는 방향의 바로 앞 칸에 피해 25를 줌.
+	// 꾹 누르고 잇어도 연속 공격하진 않음.
+	if (Input::Get().GetKeyDown('Z') && attackTimer <= 0.0f)
+	{
+		std::shared_ptr<FloorLevel> floor =
+			Cast<FloorLevel>(GetOwner());
+
+		if (floor)
+		{
+			Vector2 attackPosition = position + facingDirection;
+			attackHit = floor->AttackZombieAt(attackPosition, 25);
+			attackEffectPosition = attackPosition;
+			attackEffectTimer = 0.12f;
+		}
+		
+		attackTimer = attackInterval;
+	}
+
 	// ESC 판단은 게임의 Player가 하고 실제 종료 요청만 Engine에 전달.
 	if (Input::Get().GetKeyDown(VK_ESCAPE))
 	{
 		QuitGame();
 	}
 
+}
+
+// 명중 여부에 따라 문자와 색을 고름.
+void Player::Draw()
+{
+	Actor::Draw();
+
+	if (attackEffectTimer > 0.0f)
+	{
+		Renderer::Get().Submit(
+			attackHit ? "*" : "-",
+			attackEffectPosition,
+			attackHit ? Color::Red : Color::White,
+			// sortingOrder = 6이라 좀비 위에도 표시됨.
+			6);
+	}
 }
 
 void Player::ProcessMove(float deltaTime)
@@ -66,6 +114,9 @@ void Player::ProcessMove(float deltaTime)
 		return;
 	}
 
+	// 방향키를 누르면 그 방향을 기억함.
+	facingDirection = direction;
+
 	// 이동을 시도했으므로 타이머 초기화.
 	// 벽을 향해 계속 누르고 있어도 시간이 안 쌓임.
 	// 그러다 방향을 틀면 정상속도로 움직임.
@@ -84,7 +135,8 @@ void Player::ProcessMove(float deltaTime)
 
 	Vector2 nextPosition = position + direction;
 
-	if (!floor->IsWalkable(nextPosition))
+	if (!floor->IsWalkable(nextPosition)
+		|| floor->HasZombieAt(nextPosition))
 	{
 		return;
 	}
