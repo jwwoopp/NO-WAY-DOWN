@@ -1,8 +1,13 @@
 ﻿#include "FloorLevel.h"
 #include <Actor/Player.h>
+#include <Actor/Zombie.h>
+
 #include <Engine/Engine.h>
+#include <Input/Input.h>
 #include <Renderer/Renderer.h>
+#include <Windows.h>
 #include <iostream>
+#include <cstdlib>
 
 using namespace Craft;
 
@@ -15,9 +20,79 @@ FloorLevel::FloorLevel(const std::shared_ptr<RunState>& newRunState)
 }
 
 void FloorLevel::MoveToNextFloor()
-{
+{	
+	// 4층 출구에 도착하면 클리어를 기록하고 5층 생성을 요청하지 않음.
+	if (runState->currentFloor >= 4)
+	{
+		runState->isCleared = true;
+		return;
+	}
 	++runState->currentFloor;
 	Engine::Get().AddNewLevel<FloorLevel>(runState);
+}
+
+void FloorLevel::DamagePlayer(int amount)
+{
+
+	// 탈출한 프레임에 좀비의 공격 처리가 남아있어도 피해를 받지 않게 함.
+	if (runState->isGameOver || runState->isCleared)
+	{
+		return;
+	}
+
+	runState->health -= amount;
+
+	if (runState->health <= 0)
+	{
+		runState->health = 0;
+		runState->isGameOver = true;
+	}
+}
+// FloorLevel이 현재 Actor를 하나씩 확인하고,
+bool FloorLevel::AttackZombieAt(
+	const Vector2& targetPosition,
+	int damage)
+{
+	for (const std::shared_ptr<Actor>& actor : actorList)
+	{
+		std::shared_ptr<Zombie> zombie = Cast<Zombie>(actor);
+
+		// 해당 좌표의 Zombie를 찾으면 피해를 줍니다.
+		if (!zombie || !zombie->IsActive())
+		{
+			continue;
+		}
+
+		if (zombie->GetPosition() == targetPosition)
+		{
+			// 맞혔으면 true.	
+			zombie->TakeDamage(damage);
+			return true;
+		}
+		// 빈 공간을 공격하면 false.
+	}
+
+	return false;
+}
+
+// 이 칸에 살아있는 좀비가 서있는 지 여부 확인하는 함수.
+// Player가 이 검사를 해서 바닥이어도 좀비가 있으면 멈춤.
+// A*는 이걸 사용하지 않기에 벽과 바닥을 판단하는 규칙은 그대로임.
+// 따라서 Player의 이동만 막음.
+bool FloorLevel::HasZombieAt(const Vector2& position) const
+{
+	for (const std::shared_ptr<Actor>& actor : actorList)
+	{
+		std::shared_ptr<Zombie> zombie = Cast<Zombie>(actor);
+
+		if (zombie && zombie->IsActive()
+			&& zombie->GetPosition() == position)
+		{
+			return true;
+		}
+	}
+
+	return false;
 }
 
 void FloorLevel::OnInitialized()
@@ -28,8 +103,48 @@ void FloorLevel::OnInitialized()
 	std::string mapFilename = "../Assets/Floor" + std::to_string(runState->currentFloor) + ".txt";
 	LoadMap(mapFilename);
 	// 그 좌표에 플레이어를 생성함.
-	SpawnActor<Player>(playerStart);
+	// SpawnActor<Player>(playerStart);
+	player = SpawnActor<Player>(playerStart);
 	
+	// 좀비 생성.
+	for (const Vector2& zombieStart : zombieStarts)
+	{
+		SpawnActor<Zombie>(zombieStart);
+	}
+}
+
+void FloorLevel::Tick(float deltaTime)
+{
+	if (Input::Get().GetKeyDown(VK_F1))
+	{
+		// true와 false를 뒤집음.
+		// F1을 누를 때마다 디버그 모드가 켜지고 꺼짐.
+		runState->debugMode = !runState->debugMode;
+	}
+
+	// 클리어 때도 Actor 업데이트가 멈추고 R 입력을 받음.
+	if (runState->isGameOver || runState->isCleared)
+	{
+		if (Input::Get().GetKeyDown('R'))
+		{
+			runState->health = 100;
+			runState->medicineCount = 0;
+			runState->currentFloor = 1;
+			runState->isGameOver = false;
+			runState->isCleared = false;
+			Engine::Get().AddNewLevel<FloorLevel>(runState);
+		}
+
+		return;
+	}
+	// 플레이 중에만 H로 회복약 사용.
+	if (Input::Get().GetKeyDown('H'))
+	{
+		UseMedicine();
+	}
+
+	// Player와 Zombie가 계속 등장하도록 호출.
+	Level::Tick(deltaTime);
 }
 
 // virtual 함수는 한번도 안불려도 본문이 있어야 함.
@@ -62,6 +177,22 @@ void FloorLevel::Draw()
 			Renderer::Get().Submit(image, Vector2(x, y), color, 0);
 		}
 	}
+
+	for (const Vector2& medicinePosition : medicinePositions)
+	{
+		Renderer::Get().Submit(
+			"M", medicinePosition, Color::Green, 3);
+	}
+
+	if (runState->debugMode)
+	{
+		Renderer::Get().Submit(
+			"DEBUG ON",
+			Vector2(22, 3),
+			Color::Yellow,
+			1);
+	}
+	
 	Renderer::Get().Submit(
 		"Floor: " + std::to_string(runState->currentFloor),
 		Vector2(22, 1),
@@ -75,6 +206,23 @@ void FloorLevel::Draw()
 		Color::Red,
 		1
 	);
+
+	Renderer::Get().Submit(
+		"H: Med " + std::to_string(runState->medicineCount),
+		Vector2(22, 4), Color::Green, 1);
+
+	if (runState->isGameOver || runState->isCleared)
+	{
+		Renderer::Get().Submit(
+			runState->isCleared ? "ESCAPED!" : "GAME OVER",
+			Vector2(22, 5),
+			runState->isCleared ? Color::Green : Color::Red,
+			10);
+
+		Renderer::Get().Submit(
+			"R: Restart", Vector2(22, 6), Color::White, 10);
+	}
+
 	Level::Draw();
 }
 
@@ -163,6 +311,18 @@ void FloorLevel::LoadMap(const std::string& filename)
 			tiles.emplace_back(TileType::Floor);
 			break;
 
+		case 'z':
+			// z는 Actor가 놓일 위치일 뿐 지형은 바닥임.
+			zombieStarts.emplace_back(x, y);
+			tiles.emplace_back(TileType::Floor);
+			break;
+
+		case 'm':
+			// 회복약의 위치는 따로 기록하고, 그 아래 지형은 바닥임.
+			medicinePositions.emplace_back(x, y);
+			tiles.emplace_back(TileType::Floor);
+			break;
+
 		default:
 			// 예상 못한 글자가 와도 바닥으로 넘어가게 하려는 것.
 			// 맵 파일에 오타가 있더라도 게임이 안 죽음.
@@ -211,4 +371,97 @@ TileType FloorLevel::GetTile(int x, int y) const
 bool FloorLevel::IsWalkable(const Vector2& position) const
 {
 	return GetTile(position.x, position.y) != TileType::Wall;
+}
+
+Vector2 FloorLevel::GetPlayerPosition() const
+{
+	// lock()은 Player가 아직 살아 있는지 확인하고 잠깐 사용할 수 있게 해주는 함수.
+	// 살아 있으면 현재 위치를 반환, 이미 사라지면 안전하게 시작 위치 반환.
+	std::shared_ptr<Player> foundPlayer = player.lock();
+
+	if (!foundPlayer)
+	{
+		return playerStart;
+	}
+
+	return foundPlayer->GetPosition();
+}
+
+bool FloorLevel::HasLineOfSight(
+	const Vector2& from,
+	const Vector2& to) const
+{
+	// 현재 검사 중인 칸.
+	int x = from.x;
+	int y = from.y;
+
+	// 두 위치의 거리.
+	int deltaX = std::abs(to.x - from.x);
+	int deltaY = std::abs(to.y - from.y);
+
+	// 좌표가 움직일 방향.
+	int stepX = from.x < to.x ? 1 : -1;
+	int stepY = from.y < to.y ? 1 : -1;
+
+	// 실제 직선에 가깝게 가려면 x와 y 중 어느 쪽을 움직일지 정하는 값.
+	int error = deltaX - deltaY;
+
+	while (x != to.x || y != to.y)
+	{
+		int twiceError = error * 2;
+
+		if (twiceError > -deltaY)
+		{
+			error -= deltaY;
+			x += stepX;
+		}
+
+		if (twiceError < deltaX)
+		{
+			error += deltaX;
+			y += stepY;
+		}
+
+		// 지나가는 칸에서 벽을 만나면 시야가 막혔다고 반환함.
+		if (GetTile(x, y) == TileType::Wall)
+		{
+			return false;
+		}
+	}
+
+	return true;
+}
+
+// 약 하나로 체력 30을 회복하고, 최대 체력은 100.
+bool FloorLevel::UseMedicine()
+{
+	if (runState->isGameOver || runState->isCleared
+		|| runState->medicineCount <= 0 || runState->health >= 100)
+	{
+		return false;
+	}
+
+	--runState->medicineCount;
+	runState->health += 30;
+
+	if (runState->health > 100)
+	{
+		runState->health = 100;
+	}
+
+	return true;
+}
+
+void FloorLevel::PickUpMedicineAt(const Vector2& position)
+{
+	for (auto iter = medicinePositions.begin();
+		iter != medicinePositions.end(); ++iter)
+	{
+		if (*iter == position)
+		{
+			++runState->medicineCount;
+			medicinePositions.erase(iter);
+			return;
+		}
+	}
 }
