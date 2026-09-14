@@ -1,7 +1,8 @@
-#include "AStar.h"
+﻿#include "AStar.h"
 #include <Level/FloorLevel.h>
 #include <cstdlib>
 #include <algorithm>
+#include <chrono>
 
 AStarNode* AStar::CreateNode(
 	const Craft::Vector2& position,
@@ -99,19 +100,24 @@ void AStar::Clear()
 			return false;
 		}
 
-		std::vector<Craft::Vector2> AStar::FindPath(
+		std::vector<Craft::Vector2> AStar::FindPathInternal(
 			const Craft::Vector2& start,
 			const Craft::Vector2& goal,
-			const FloorLevel& floor)
+			const FloorLevel& floor,
+			bool canBreakDoors)
 		{
 			// 이전 탐색 기록을 지움.
 			Clear();
 
 			// 시작점과 목적지가 벽인지 확인.
-			if (!floor.IsWalkable(start) || !floor.IsWalkable(goal))
-			{
-				return {};
-			}
+			bool canReachGoal = floor.IsWalkable(goal)
+				|| (canBreakDoors
+					&& floor.GetTile(goal.x, goal.y) == TileType::ClosedDoor);
+
+				if (!floor.IsWalkable(start) || !canReachGoal)
+				{
+					return {};
+				}
 
 			AStarNode* startNode = CreateNode(start);
 			startNode->gCost = 0.0f;
@@ -165,13 +171,24 @@ void AStar::Clear()
 						currentNode->position + direction;
 
 					// 벽이거나 이미 끝낸 칸이면 건너 뜀.
-					if (!floor.IsWalkable(nextPosition)
+					bool isClosedDoor =
+						floor.GetTile(nextPosition.x, nextPosition.y)
+						== TileType::ClosedDoor;
+
+					//목적지가 소리가 난 문 자체일 수도 있음.
+					if ((!floor.IsWalkable(nextPosition)
+						&& !(canBreakDoors && isClosedDoor))
 						|| IsInClosedList(nextPosition))
 					{
 						continue;
 					}
-
-					float newGCost = currentNode->gCost + 1.0f;
+					
+					// 일반 바닥은 1, 닫힌 문은 10.
+					// 여기서 10은 실제 타격 횟수가 아니라 우회와 문 파괴 경로를 비교하는 가중치.
+					float stepCost = isClosedDoor
+						? setting.closedDoorStepCost
+						: setting.floorStepCost;
+					float newGCost = currentNode->gCost + stepCost;
 					AStarNode* openNode = FindOpenNode(nextPosition);
 
 					if (openNode != nullptr)
@@ -202,4 +219,31 @@ void AStar::Clear()
 			}
 
 			return {};
+		}
+
+		std::vector<Craft::Vector2> AStar::FindPath(
+			const Craft::Vector2& start,
+			const Craft::Vector2& goal,
+			const FloorLevel& floor,
+			bool canBreakDoors)
+		{
+			const auto begin = std::chrono::steady_clock::now();
+
+			auto path = FindPathInternal(start, goal, floor, canBreakDoors);
+
+			const auto end = std::chrono::steady_clock::now();
+			const double elapsed =
+				std::chrono::duration<double, std::micro>(end - begin).count();
+
+			++stats.searchCount;
+			stats.expandedNodes += static_cast<int>(closedList.size());
+			stats.totalMicroseconds += elapsed;
+
+			if (elapsed > stats.maxMicroseconds)
+				stats.maxMicroseconds = elapsed;
+
+			if (path.empty())
+				++stats.failedCount;
+
+			return path;
 		}

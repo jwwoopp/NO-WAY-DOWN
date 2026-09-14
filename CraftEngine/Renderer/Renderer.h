@@ -61,6 +61,17 @@ namespace Craft
 			// Get 함수는 Actor가 현재 Renderer 객체에 접근해서 Submit 호출 가능하게 함.
 			
 			void Draw();
+			bool ConsoleToPixel(COORD cell, Vector2& pixel) const;
+
+			// Compatibility for existing UI layouts measured in terminal cells.
+			// Submit itself now takes logical pixel coordinates (160 x 160).
+			void SubmitCells(const std::string& image, const Vector2& position,
+				Color color = Color::White, int sortingOrder = 0);
+
+			// 지금 화면에 그려져 있는 내용을 그대로 복사해 감.
+			// 층을 넘어갈 때 이전 층 화면을 잔상으로 남기는 데 씀.
+			void CopyCurrentFrame(std::vector<CHAR_INFO>& out) const;
+
 			static Renderer& Get();
 
 	private:

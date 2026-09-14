@@ -5,5 +5,7 @@ enum class TileType
 {
 	Floor,
 	Wall,
-	Exit
+	Exit,
+	ClosedDoor,
+	OpenDoor
 };

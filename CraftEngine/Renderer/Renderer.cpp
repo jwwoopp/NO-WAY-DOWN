@@ -69,13 +69,18 @@ namespace Craft
 
 		frame->Clear(screenSize);
 
-		// 화면 두 장 만들기.
-		screenBufferArray[0] = std::make_unique<ScreenBuffer>(screenSize);
+		// 두 장의 물리 버퍼를 번갈아 사용함.
+		// 현재 화면을 지우는 동안 다른 버퍼가 보여서 깜빡임이 생기지 않음.
+		const Vector2 consoleSize(screenSize.x, screenSize.y / 2);
+		// 화면 버퍼는 한 장만 씀.
+		// WriteConsole이 화면 전체를 한 번에 쓰므로 그 자체가 찢김 없는 블릿이고,
+		// 두 장을 번갈아 쓰면 매 프레임 SetConsoleActiveScreenBuffer를 부르게 되는데
+		// Windows Terminal이 그때마다 뷰포트를 다시 만드느라 갱신이 밀려서
+		// 화면 일부가 이전 내용으로 남음. 잔상의 원인이 이것이었음.
+		screenBufferArray[0] = std::make_unique<ScreenBuffer>(consoleSize);
 		screenBufferArray[0]->Clear();
 
-		screenBufferArray[1] = std::make_unique<ScreenBuffer>(screenSize);
-		screenBufferArray[1]->Clear();
-
+		// 시작할 때 한 번만 활성 화면으로 지정함.
 		SetConsoleActiveScreenBuffer(screenBufferArray[0]->GetBuffer());
 	}
 
@@ -100,6 +105,13 @@ namespace Craft
 		renderQueue.emplace_back(command);
 	}
 
+	void Renderer::SubmitCells(const std::string& image, const Vector2& position,
+		Color color, int sortingOrder)
+	{
+		Submit(image, Vector2(position.x, position.y * 2), color, sortingOrder);
+		Submit(image, Vector2(position.x, position.y * 2 + 1), color, sortingOrder);
+	}
+
 	void Renderer::Draw()
 	{
 		// 이전 화면 지우기.
@@ -108,6 +120,39 @@ namespace Craft
 		DrawRenderQueue();
 		// 완성된 화면 표시.
 		Present();
+	}
+
+	bool Renderer::ConsoleToPixel(COORD cell, Vector2& pixel) const
+	{
+		CONSOLE_SCREEN_BUFFER_INFO info = {};
+		if (!GetConsoleScreenBufferInfo(GetCurrentBuffer()->GetBuffer(), &info)) return false;
+		const int width = info.srWindow.Right - info.srWindow.Left + 1;
+		const int height = info.srWindow.Bottom - info.srWindow.Top + 1;
+		const int offsetX = width > screenSize.x ? (width - screenSize.x) / 2 : 0;
+		const int offsetY = height > screenSize.y / 2 ? (height - screenSize.y / 2) / 2 : 0;
+		const int x = cell.X - info.srWindow.Left;
+		const int y = cell.Y - info.srWindow.Top;
+		if (x < 0 || y < 0 || x >= width || y >= height) return false;
+		const int px = x - offsetX;
+		const int py = (y - offsetY) * 2 + 1;
+		if (px < 0 || py < 0 || px >= screenSize.x || py >= screenSize.y) return false;
+		pixel = Vector2(px, py);
+		return true;
+	}
+
+	void Renderer::CopyCurrentFrame(std::vector<CHAR_INFO>& out) const
+	{
+		const size_t cellCount =
+			static_cast<size_t>(screenSize.x) * static_cast<size_t>(screenSize.y);
+
+		out.resize(cellCount);
+
+		// Draw는 매 프레임 시작에 frame을 지우므로,
+		// Tick 중에 부르면 직전 프레임에 그려진 화면이 그대로 들어 있음.
+		memcpy(
+			out.data(),
+			frame->charInfoArray.get(),
+			cellCount * sizeof(CHAR_INFO));
 	}
 
 	Renderer& Renderer::Get()
@@ -124,8 +169,10 @@ namespace Craft
 		// 메모리 배열 1000칸을 공백으로.
 		frame->Clear(screenSize);
 
-		// 콘솔 버퍼 자체를 공백으로.
-		GetCurrentBuffer()->Clear();
+		// 콘솔 버퍼는 여기서 비우지 않음.
+		// Draw가 뷰포트 전 칸을 덮어쓰므로 비울 필요가 없고,
+		// 매 프레임 비우면 지워진 순간이 화면에 노출돼 깜빡임이 생김.
+		// 뷰포트 바깥 잔상은 Draw가 가장자리를 배경색으로 채워서 해결함.
 	}
 
 	void Renderer::DrawRenderQueue()
@@ -203,12 +250,14 @@ namespace Craft
 
 	void Renderer::Present()
 	{
-		SetConsoleActiveScreenBuffer(GetCurrentBuffer()->GetBuffer());
-
-		// 0과 1을 뒤집는 식.
-		currentBufferIndex = 1 - currentBufferIndex;
-		// if (currentBufferIndex == 0) currentBufferIndex = 1;
-		// else currentBufferIndex = 0;
+		// 화면 한 장만 쓰므로 여기서 할 일이 없음.
+		// DrawRenderQueue의 WriteConsole이 이미 화면에 다 쓴 상태임.
+		//
+		// 매 프레임 활성 화면을 바꾸던 이전 방식은 되살리지 말 것.
+		// 깜빡임을 없애려던 것인데 Windows Terminal에서는 오히려
+		// 갱신이 밀려서 잔상이 생김.
+		// SetConsoleActiveScreenBuffer(GetCurrentBuffer()->GetBuffer());
+		// currentBufferIndex = 1 - currentBufferIndex;
 	}
 
 	const ScreenBuffer* const Renderer::GetCurrentBuffer() const

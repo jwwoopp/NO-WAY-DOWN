@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 
 #include "AStarNode.h"
 #include <vector>
@@ -7,19 +7,55 @@
 // 실제 함수에 필요한 헤더는 AStar.cpp에서 구현.
 class FloorLevel;
 
+struct AStarStats
+{
+	int searchCount = 0;
+	int failedCount = 0;
+	int expandedNodes = 0;
+	double totalMicroseconds = 0.0;
+	double maxMicroseconds = 0.0;
+};
+
 class AStar
 {
 public:
 	~AStar();
+
+	static const AStarStats& GetStats()
+	{
+		return stats;
+	}
+
+	static void ResetStats()
+	{
+		stats = AStarStats{};
+	}
 
 	// FindPath는 시작 좌표, 목적지, 현재 층을 받아 이동할 좌표 목록을 반환.
 	std::vector<Craft::Vector2> FindPath(
 		const Craft::Vector2& start,
 		const Craft::Vector2& goal,
 		// Floor은 const 참조로 받아 맵을 복사하지 않고 읽기만 함.
-		const FloorLevel& floor);
+		const FloorLevel& floor,
+		// canBreakDoors - 문을 부수는 경로도 고려할 것인가라는 옵션.
+		bool canBreakDoors = false);
 private:
+	struct Setting
+	{
+		float floorStepCost = 1.0f;
+		float closedDoorStepCost = 10.0f;
+	};
+
+	Setting setting;
+
+	inline static AStarStats stats;
 	
+	std::vector<Craft::Vector2> FindPathInternal(
+		const Craft::Vector2& start,
+		const Craft::Vector2& goal,
+		const FloorLevel& floor,
+		bool canBreakDoors);
+
 	// 생성한 Node와 탐색 목록을 정리하고, 소멸자는 AStar가 사라질 때 Clear을 호출하도록 구현.
 	void Clear();
 

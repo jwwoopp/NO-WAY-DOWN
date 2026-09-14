@@ -31,7 +31,7 @@ namespace Craft
 		// Engine이 사라지면 unique_ptr이 Renderer을 자동 삭제.
 		
 		// 설정 화면에서 읽은 화면 크기를 Renderer에 넘김.
-		renderer = std::make_unique<Renderer>(Vector2(setting.width, setting.height)
+		renderer = std::make_unique<Renderer>(Vector2(GetWidth(), GetHeight())
 		);
 	}
 	Engine::~Engine()
@@ -62,6 +62,17 @@ namespace Craft
 
 			QueryPerformanceCounter(&counter);
 			current = counter.QuadPart;
+
+			// Snipping Tool 같은 전역 오버레이가 열린 동안에는
+			// 콘솔 출력과 게임 시뮬레이션을 잠시 멈춤.
+			// 120fps 설정은 그대로이고, 포커스를 되찾으면 즉시 재개함.
+			if (input && !input->IsFocused())
+			{
+				previous = current;
+				SavePreviousInputStates();
+				Sleep(1);
+				continue;
+			}
 
 			float deltaTime =
 				static_cast<float>(current - previous) /
@@ -219,5 +230,11 @@ namespace Craft
 		
 		fclose(file);
 		file = nullptr;
+
+		// 화면 크기는 설정 파일 값을 그대로 씀.
+		// 터미널 창 크기를 그대로 따라가게 했더니, 창이 세로로 짧을 때
+		// 배치가 전부 겹쳐서 오히려 더 망가졌음.
+		// 대신 ScreenBuffer가 이 크기를 창 한가운데 놓고
+		// 남는 가장자리를 배경색으로 채움.
 	}
 }
