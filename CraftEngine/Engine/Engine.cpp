@@ -2,6 +2,7 @@
 #include <Input/Input.h>
 #include <Level/Level.h>
 #include <Renderer/Renderer.h>
+#include <Core/ResourcePath.h>
 #include <cassert>
 #include <iostream>
 #include <Windows.h>
@@ -173,13 +174,18 @@ namespace Craft
 
 	void Engine::LoadEngineSetting()
 	{
+		const std::filesystem::path settingPath =
+			ResolveResourcePath(L"Config/Setting.txt");
 		FILE* file = nullptr;
-		fopen_s(&file, "../Config/Setting.txt", "rt");
+		if (!settingPath.empty())
+		{
+			_wfopen_s(&file, settingPath.c_str(), L"rt");
+		}
 
 		if (!file)
 		{
-			std::cout << "Failed to open engine setting file.\n";
-			__debugbreak();
+			std::cerr << "Could not open Config/Setting.txt beside the game files. "
+				"Using default settings.\n";
 			return;
 		}
 		// 파일 내용 담을 상자.
@@ -190,7 +196,16 @@ namespace Craft
 		size_t readSize
 			// (buffer, sizeof(char), bufferSize, file)
 			// 어디에 담을지, 한 칸 크기, 몇 칸 까지, 어느 파일에서.
-			= fread(buffer, sizeof(char), bufferSize, file);
+			= fread(buffer, sizeof(char), bufferSize - 1, file);
+		buffer[readSize] = '\0';
+		const int extraCharacter = fgetc(file);
+		if (ferror(file) || extraCharacter != EOF)
+		{
+			std::cerr << "Could not read Config/Setting.txt or the file is too large. "
+				"Using default settings.\n";
+			fclose(file);
+			return;
+		}
 
 		char* context = nullptr;
 		char* token = nullptr;

@@ -1,5 +1,6 @@
 ﻿#include "MapLoader.h"
 #include <cstdio>
+#include <Core/ResourcePath.h>
 #include <utility>
 
 // fopen_s로 파일을 열고 fread로 내용을 읽는다.
@@ -7,8 +8,12 @@
 // 성공한 경우에는 반드시 fclose로 닫음.
 bool MapLoader::Load(const std::string& filename, MapData& outData)
 {
+	const std::filesystem::path mapPath = Craft::ResolveResourcePath(filename);
 	FILE* file = nullptr;
-	fopen_s(&file, filename.c_str(), "rt");
+	if (!mapPath.empty())
+	{
+		_wfopen_s(&file, mapPath.c_str(), L"rt");
+	}
 
 	if (!file)
 	{

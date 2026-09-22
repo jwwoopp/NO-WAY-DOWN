@@ -192,11 +192,11 @@ void FloorLevel::OnInitialized()
 	// 이걸 안찍으면 엔진이 매 프레임 또 부르고, 맵을 1초에 120번 다시 읽음.
 	Level::OnInitialized();
 	// 층수에 맞는 맵을 읽어 플레이어의 좌표를 찾음.
-	std::string mapFilename = "../Assets/BuildingMaps/Floor" + std::to_string(runState->currentFloor) + ".txt";
+	std::string mapFilename = "Assets/BuildingMaps/Floor" + std::to_string(runState->currentFloor) + ".txt";
 	
 	if (!LoadMap(mapFilename))
 	{
-		std::cout << "Failed to load map.\n";
+		std::cerr << "Failed to load map: " << mapFilename << "\n";
 		Engine::Get().Quit();
 		return;
 	}
