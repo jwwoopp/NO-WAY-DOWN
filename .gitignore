@@ -14,3 +14,10 @@ Includes/
 Lib/
 *.lib
 *.dll
+
+tmp/
+output/
+*.bak
+Tools/SpriteStudio/
+HANDOFF*.md
+NO_WAY_DOWN_PRESENTATION_BRIEF.md

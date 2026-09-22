@@ -58,6 +58,7 @@
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp20</LanguageStandard>
+      <AdditionalOptions>/FS %(AdditionalOptions)</AdditionalOptions>
       <AdditionalIncludeDirectories>..\Includes;$(ProjectDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
@@ -83,6 +84,7 @@
       <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp20</LanguageStandard>
+      <AdditionalOptions>/FS %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -99,24 +101,53 @@
     </PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="Actor\Player.cpp" />
+	<ClCompile Include="Audio\BgmPlayer.cpp" />
+	<ClCompile Include="Actor\Player.cpp" />
     <ClCompile Include="Actor\TestActor.cpp" />
     <ClCompile Include="Actor\Zombie.cpp" />
+    <ClCompile Include="Game\ZombieData.cpp" />
+    <ClCompile Include="Game/ZombieSpawner.cpp" />
+    <ClCompile Include="Audio/AudioSystem.cpp" />
     <ClCompile Include="Level\FloorLevel.cpp" />
+    <ClCompile Include="Level/TitleLevel.cpp" />
+    <ClCompile Include="Level/EndingLevel.cpp" />
     <ClCompile Include="Level\TestLevel.cpp" />
     <ClCompile Include="Main.cpp" />
+    <ClCompile Include="Map\DoorSystem.cpp" />
+    <ClCompile Include="Map\MapLoader.cpp" />
+    <ClCompile Include="Map\TileMap.cpp" />
     <ClCompile Include="PathFinding\AStar.cpp" />
+    <ClCompile Include="Renderer\IsometricRenderer.cpp" />
+    <ClCompile Include="UI\GameHUD.cpp" />
+    <ClCompile Include="UI/BlockFont.cpp" />
+    <ClCompile Include="UI/SceneArt.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Actor\Player.h" />
+	<ClInclude Include="Audio\BgmPlayer.h" />
+	<ClInclude Include="Actor\Player.h" />
     <ClInclude Include="Actor\TestActor.h" />
     <ClInclude Include="Actor\Zombie.h" />
     <ClInclude Include="Game\RunState.h" />
+    <ClInclude Include="Game\ZombieData.h" />
+    <ClInclude Include="Game/ZombieSpawner.h" />
+    <ClInclude Include="Audio/AudioSystem.h" />
     <ClInclude Include="Level\TestLevel.h" />
     <ClInclude Include="Level\FloorLevel.h" />
+    <ClInclude Include="Level/TitleLevel.h" />
+    <ClInclude Include="Level/EndingLevel.h" />
+    <ClInclude Include="Map\DoorData.h" />
+    <ClInclude Include="Map\DoorSystem.h" />
+    <ClInclude Include="Map\MapData.h" />
+    <ClInclude Include="Map\MapLoader.h" />
+    <ClInclude Include="Map\TileMap.h" />
     <ClInclude Include="Map\TileType.h" />
     <ClInclude Include="PathFinding\AStar.h" />
     <ClInclude Include="PathFinding\AStarNode.h" />
+    <ClInclude Include="Renderer\CharacterSpriteData.h" />
+    <ClInclude Include="Renderer\IsometricRenderer.h" />
+    <ClInclude Include="UI\GameHUD.h" />
+    <ClInclude Include="UI/BlockFont.h" />
+    <ClInclude Include="UI/SceneArt.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 
 #include <Math/Vector2.h>
 #include <Windows.h>
@@ -23,6 +23,9 @@ namespace Craft
 
 	private:
 		HANDLE buffer = nullptr;
+		// 기본 콘솔 출력 핸들은 운영체제가 소유하므로 닫지 않음.
+		bool ownsBuffer = false;
+		bool halfBlockPreview = false;
 
 		Vector2 size;
 	};

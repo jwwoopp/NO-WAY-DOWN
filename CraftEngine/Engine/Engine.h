@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 
 #include <Core/Core.h>
 #include <memory>
@@ -45,7 +45,9 @@ namespace Craft
 
 		// Getter는 설정에서 화면 너비와 높이를 꺼냄.
 		int GetWidth() const { return setting.width; }
-		int GetHeight() const { return setting.height; }
+		// Drawing uses two logical pixels per terminal cell vertically.
+		int GetHeight() const { return setting.height * 2; }
+		int GetConsoleHeight() const { return setting.height; }
 
 	protected:
 

@@ -1,4 +1,4 @@
-#include "Vector2.h"
+﻿#include "Vector2.h"
 #include <cassert>
 // Vector2.h가 이미 Core.h와 Windows.h를 포함함. 
 // 따라서 cpp에서 다시 포함할 필요는 없음.
