@@ -32,7 +32,7 @@
 
 - 언어: C++20
 - 플랫폼: Windows
-- 엔진: 학습용 `CraftEngine`
+- 엔진: 원티드 포텐업 게임개발트랙 강의 저장소를 따라 구현한 학습용 `CraftEngine`
 - 구조: `Engine → Level → Actor`
 - 시뮬레이션: 렌더링과 분리된 고정 틱
 - 후속 목표: Unity에서 동일한 규칙을 애니메이션·VFX·사운드로 확장
