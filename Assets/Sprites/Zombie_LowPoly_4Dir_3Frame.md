@@ -1,6 +1,6 @@
 # Zombie low-poly sprite sheet
 
-- Source: `이미지 (15).png`
+- Source: AI-generated image (original sprite sheet)
 - Runtime asset: `Zombie_LowPoly_4Dir_3Frame_Source.png`
 - Layout: 3 columns x 4 rows (12 views)
 - Rows: front, back, left profile, right profile

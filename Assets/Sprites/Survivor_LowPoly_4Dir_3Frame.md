@@ -1,6 +1,6 @@
 # Survivor low-poly sprite sheet
 
-- Source: `codex-clipboard-cc1f4d0b-55a0-4163-832d-938f0466939c.png`
+- Source: AI-generated image (original sprite sheet)
 - Runtime asset: `Survivor_LowPoly_4Dir_3Frame_Source.png`
 - Layout: 3 columns x 4 rows (12 views)
 - Rows: front, back, left profile, right profile
