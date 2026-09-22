@@ -10,9 +10,7 @@ void TestLevel::OnInitialized()
 {
 	Craft::Level::OnInitialized();
 	// SpawnActor<TestActor>();
-    mapLoaded = MapLoader::Load("../Assets/Floor1.txt", mapData);
-    if (!mapLoaded)
-        mapLoaded = MapLoader::Load("Assets/Floor1.txt", mapData);
+    mapLoaded = MapLoader::Load("Assets/Floor1.txt", mapData);
 
     if (mapLoaded)
     {
