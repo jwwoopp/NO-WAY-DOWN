@@ -144,6 +144,8 @@ private:
 	// 생성자로 전달받은 shared_ptr을 이 변수에 저장.
 	// FloorLevel이 바뀌어도 다음 FloorLevel에 같은 runState를 전달하면 진행 정보 유지.
 	std::shared_ptr<RunState> runState;
+	// 출구에 들어간 프레임에는 이전 층의 남은 좀비 공격을 무시함.
+	bool floorTransitionRequested = false;
 	// 지형 담당 객체를 둠. 상속이 아니라 가지고 있는 관계.
 	TileMap tileMap;
 	DoorSystem doorSystem;

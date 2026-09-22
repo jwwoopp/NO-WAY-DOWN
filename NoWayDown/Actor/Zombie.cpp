@@ -115,9 +115,6 @@ void Zombie::Draw()
 		Renderer::Get().Submit(stateText, label, Color::Skin, 6);
 	}
 
-	return;
-
-	Actor::Draw();
 }
 
 int Zombie::GetBobOffset() const

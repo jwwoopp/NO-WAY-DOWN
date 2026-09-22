@@ -67,6 +67,13 @@ FloorLevel::FloorLevel(const std::shared_ptr<RunState>& newRunState)
 
 void FloorLevel::MoveToNextFloor()
 {	
+	if (floorTransitionRequested || runState->isGameOver || runState->isCleared)
+	{
+		return;
+	}
+
+	floorTransitionRequested = true;
+
 	// 임시로 12층 출구에서 클리어. 옥상 장면은 이후 연결.
 	if (runState->currentFloor >= 12)
 	{
@@ -111,7 +118,7 @@ void FloorLevel::DamagePlayer(int amount)
 {
 
 	// 탈출한 프레임에 좀비의 공격 처리가 남아있어도 피해를 받지 않게 함.
-	if (runState->isGameOver || runState->isCleared)
+	if (floorTransitionRequested || runState->isGameOver || runState->isCleared)
 	{
 		return;
 	}
@@ -295,9 +302,12 @@ void FloorLevel::Tick(float deltaTime)
 		UseMedicine();
 	}
 
-	zombieSpawner.Update(deltaTime, *this, *runState);
-	// Player와 Zombie가 계속 등장하도록 호출.
+	// 출구 진입 여부를 먼저 결정해야 같은 프레임에 도착한 좀비 기록이 사라지지 않음.
 	Level::Tick(deltaTime);
+	if (!floorTransitionRequested && !runState->isGameOver && !runState->isCleared)
+	{
+		zombieSpawner.Update(deltaTime, *this, *runState);
+	}
 
 	AudioSystem::Get().Update(deltaTime);
 
@@ -895,6 +905,7 @@ void FloorLevel::ToggleDoorAt(const Vector2& position)
 	if (tile == TileType::ClosedDoor)
 	{
 		tileMap.SetTile(position.x, position.y, TileType::OpenDoor);
+		lastVisibilityOrigin = Vector2(-1, -1);
 		// 거리는 가로, 세로 이동 칸수의 합.
 		MakeNoise(position, 6);
 	}
@@ -906,6 +917,7 @@ void FloorLevel::ToggleDoorAt(const Vector2& position)
 		}
 
 		tileMap.SetTile(position.x, position.y, TileType::ClosedDoor);
+		lastVisibilityOrigin = Vector2(-1, -1);
 	}
 }
 
@@ -943,7 +955,12 @@ bool FloorLevel::HitDoorAt(const Vector2& position)
 		return false;
 	}
 
-	return doorSystem.HitDoor(tileMap, position);
+	const bool destroyed = doorSystem.HitDoor(tileMap, position);
+	if (destroyed)
+	{
+		lastVisibilityOrigin = Vector2(-1, -1);
+	}
+	return destroyed;
 }
 
 // 플레이어가 출구에 도착했을 때 호출할 예정.

@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 
 #include <Map/DoorData.h>
 #include <vector>
