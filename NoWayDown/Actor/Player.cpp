@@ -217,6 +217,11 @@ void Player::ReadMoveClick()
 	AStar pathfinder;
 	clickPath = pathfinder.FindPath(position, target, *floor, false);
 	clickPathIndex = clickPath.size() > 1 ? 1 : clickPath.size();
+	if (clickPathIndex < clickPath.size())
+	{
+		// 대기 중 쌓인 시간이 첫 클릭 이동에 적용되지 않게 한다.
+		moveTimer = 0.0f;
+	}
 }
 
 void Player::Move(float deltaTime)
